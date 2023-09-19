@@ -30,8 +30,18 @@ func RegistrarPlantilla(plantilla map[string]interface{}) (result map[string]int
 	}
 }
 
-func ConsultarPlantilla() (plantilla map[string]interface{}, err error) {
-	return nil, nil
+func ConsultarPlantilla(id string) (map[string]interface{}, error) {
+
+	var plantilla map[string]interface{}
+
+	err1 := request.GetJson(beego.AppConfig.String("PlantillasCrudService")+id, &plantilla)
+
+	if err1 == nil {
+		return plantilla, nil
+	} else {
+		fmt.Println("Error al consultar la plantilla: ", err1)
+		return nil, err1
+	}
 }
 
 func ConstruirPlantilla(plantilla map[string]interface{}) (plantillaFormatted map[string]interface{}) {
@@ -122,6 +132,17 @@ func ConstruirPlantilla(plantilla map[string]interface{}) (plantillaFormatted ma
 	return PlantillaPost
 }
 
-func ActualizarPlantilla(id string) (status interface{}, outputError interface{}) {
-	return nil, nil
+func ActualizarPlantilla(id string, plantilla map[string]interface{}) (status interface{}, outputError interface{}) {
+
+	var resultadoRegistro map[string]interface{}
+	var err1 interface{}
+
+	err1 = request.SendJson(beego.AppConfig.String("PlantillasCrudService")+"/plantilla/"+id, "PUT", &resultadoRegistro, plantilla)
+
+	if err1 == nil {
+		fmt.Println("Plantilla actualizada!")
+		return resultadoRegistro["res"], nil
+	} else {
+		return nil, err1
+	}
 }
