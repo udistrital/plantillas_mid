@@ -1,32 +1,60 @@
 package models
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"log"
+	"time"
 
-	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 
 	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
-func RegistrarPlantilla(plantilla map[string]interface{}) (result map[string]interface{}, outputError interface{}) {
+type Plantilla struct {
+	Id                int
+	Tipo              string
+	Nombre            string
+	Descripcion       string
+	Contenido         string
+	EnlaceDoc         string
+	FechaCreacion     time.Time
+	FechaModificacion time.Time
+	version           float64
+	versionActual     bool
+}
+
+func RegistrarPlantilla(plantilla map[string]interface{}) (io.Reader, interface{}) {
 
 	var PlantillaPost map[string]interface{}
 	var resultadoRegistro map[string]interface{}
 	var errRegPlantilla interface{}
 
-	PlantillaPost = ConstruirPlantilla(plantilla)
+	dataPlantilla := plantilla["contenido"].(string)
 
-	errRegPlantilla = request.SendJson(beego.AppConfig.String("PlantillasCrudService")+"/plantilla", "POST", &resultadoRegistro, PlantillaPost)
-
-	if resultadoRegistro["Status"] == "400" || errRegPlantilla != nil {
-		fmt.Println(errRegPlantilla)
-		return nil, errRegPlantilla
-
+	pdfResponse, errConvert := ConvertHTMLToPDF(dataPlantilla)
+	if errConvert != nil {
+		fmt.Println("Error al convertir el html a pdf: ", errConvert)
+		return nil, errConvert
 	} else {
-		formatdata.JsonPrint(resultadoRegistro)
-		return resultadoRegistro, nil
+		fmt.Println("Html convertido a pdf correctamente", pdfResponse)
+		PlantillaPost = plantilla
 
+		fmt.Println("PlantillaPost: ", PlantillaPost)
+		errRegPlantilla = request.SendJson(beego.AppConfig.String("PlantillasCrudService")+"/plantilla", "POST", &resultadoRegistro, PlantillaPost)
+
+		if resultadoRegistro["Status"] == "400" || errRegPlantilla != nil {
+			fmt.Println(errRegPlantilla)
+			return nil, errRegPlantilla
+
+		} else {
+			formatdata.JsonPrint(resultadoRegistro)
+			return nil, nil
+
+		}
 	}
 }
 
@@ -145,4 +173,37 @@ func ActualizarPlantilla(id string, plantilla map[string]interface{}) (status in
 	} else {
 		return nil, err1
 	}
+}
+
+func ConversorDoc(data string) (status interface{}, outputError interface{}) {
+	return nil, nil
+}
+
+func ConvertHTMLToPDF(htmlData string) (io.Reader, error) {
+	fmt.Println("Hola")
+	pdfg, err := wkhtmltopdf.NewPDFGenerator()
+	if err != nil {
+		fmt.Println("Error al crear el generador de pdf: ", err)
+		log.Fatal(err)
+	}
+
+	pdfg.AddPage(wkhtmltopdf.NewPageReader(bytes.NewReader([]byte(htmlData))))
+
+	err = pdfg.Create()
+	if err != nil {
+		fmt.Println("Error al crear el pdf: ", err)
+		log.Fatal(err)
+	}
+
+	// Write buffer contents to file on disk
+	err = pdfg.WriteFile("./doc.pdf")
+	if err != nil {
+		fmt.Println("Error al escribir el pdf: ", err)
+		log.Fatal(err)
+	}
+
+	// Convert buffer to io.Reader
+	pdf := bytes.NewReader(pdfg.Bytes())
+
+	return pdf, nil
 }
