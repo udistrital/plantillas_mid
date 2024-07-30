@@ -30,7 +30,7 @@ func (c *PlantillaController) URLMapping() {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *PlantillaController) Post() {
-	var registroPlantilla map[string]interface{}
+	var registroPlantilla models.Plantilla
 	var alertErr models.Alert
 	alertas := append([]interface{}{"Response:"})
 

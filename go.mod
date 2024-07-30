@@ -5,8 +5,10 @@ go 1.20
 require (
 	github.com/astaxie/beego v1.12.3
 	github.com/beego/beego/v2 v2.1.1
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/udistrital/utils_oas v0.0.0-20230828220102-692e527e7ecd
+	go.mongodb.org/mongo-driver v1.13.1
 )
 
 require (

@@ -2,20 +2,36 @@ package models
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
-	"io"
-	"log"
+	"html"
+	"html/template"
+	"os"
+	"regexp"
+	"strings"
 	"time"
 
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
-
 	"github.com/astaxie/beego"
-	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/jung-kurt/gofpdf"
+
+	// "github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
 type Plantilla struct {
-	Id                int
+	Tipo              string
+	Nombre            string
+	Descripcion       string
+	Contenido         string
+	Secciones         []Seccion
+	EnlaceDoc         string
+	FechaCreacion     time.Time
+	FechaModificacion time.Time
+	version           float64
+	versionActual     bool
+}
+
+type PlantillaPost struct {
 	Tipo              string
 	Nombre            string
 	Descripcion       string
@@ -27,35 +43,55 @@ type Plantilla struct {
 	versionActual     bool
 }
 
-func RegistrarPlantilla(plantilla map[string]interface{}) (io.Reader, interface{}) {
+func RegistrarPlantilla(plantilla Plantilla) (string, interface{}) {
 
-	var PlantillaPost map[string]interface{}
-	var resultadoRegistro map[string]interface{}
-	var errRegPlantilla interface{}
+	fmt.Println("Función RegistrarPlantilla")
 
-	dataPlantilla := plantilla["contenido"].(string)
+	var PlantillaPost PlantillaPost
+	// var resultadoRegistro map[string]interface{}
+	// var errRegPlantilla interface{}
 
-	pdfResponse, errConvert := ConvertHTMLToPDF(dataPlantilla)
+	// dataPlantilla := plantilla.Nombre
+
+	// result1, errConvert := ConversorDoc(dataPlantilla)
+	// fmt.Println("Result1: ", result1+errConvert.Error())
+	result, errConvert := ConversorHTML(plantilla)
+	// errConvert := generatePDF(dataPlantilla, "C:/Users/Youssef/Desktop/test.pdf")
 	if errConvert != nil {
-		fmt.Println("Error al convertir el html a pdf: ", errConvert)
-		return nil, errConvert
+		fmt.Println("Error al convertir la estructura a HTML ", errConvert)
+		return "nil", errConvert
 	} else {
-		fmt.Println("Html convertido a pdf correctamente", pdfResponse)
-		PlantillaPost = plantilla
+		fmt.Println("Pdf generado correctamente!")
+
+		fmt.Println("Result: ", result)
+
+		PlantillaPost.Tipo = plantilla.Tipo
+		PlantillaPost.Nombre = plantilla.Nombre
+		PlantillaPost.Descripcion = plantilla.Descripcion
+		PlantillaPost.EnlaceDoc = plantilla.EnlaceDoc
+		PlantillaPost.FechaCreacion = plantilla.FechaCreacion
+		PlantillaPost.FechaModificacion = plantilla.FechaModificacion
+		PlantillaPost.version = plantilla.version
+		PlantillaPost.versionActual = plantilla.versionActual
+
+		PlantillaPost.Contenido = result
 
 		fmt.Println("PlantillaPost: ", PlantillaPost)
-		errRegPlantilla = request.SendJson(beego.AppConfig.String("PlantillasCrudService")+"/plantilla", "POST", &resultadoRegistro, PlantillaPost)
 
-		if resultadoRegistro["Status"] == "400" || errRegPlantilla != nil {
-			fmt.Println(errRegPlantilla)
-			return nil, errRegPlantilla
+		// errRegPlantilla = request.SendJson(beego.AppConfig.String("PlantillasCrudService")+"/plantilla", "POST", &resultadoRegistro, PlantillaPost)
 
-		} else {
-			formatdata.JsonPrint(resultadoRegistro)
-			return nil, nil
+		// if resultadoRegistro["Status"] == "400" || errRegPlantilla != nil {
+		// 	fmt.Println(errRegPlantilla)
+		// 	return "nil", errRegPlantilla
 
-		}
+		// } else {
+		// 	formatdata.JsonPrint(resultadoRegistro)
+		// 	return "nil", nil
+
+		// }
+		return result, nil
 	}
+	return "nil", nil
 }
 
 func ConsultarPlantilla(id string) (map[string]interface{}, error) {
@@ -77,75 +113,6 @@ func ConstruirPlantilla(plantilla map[string]interface{}) (plantillaFormatted ma
 	Plantilla = plantilla
 
 	PlantillaPost := make(map[string]interface{})
-
-	secciones := Plantilla["secciones"].([]map[string]interface{})
-	minutas := Plantilla["minutas"].([]map[string]interface{})
-	titulos := Plantilla["titulos"].([]map[string]interface{})
-	// imagenes := Plantilla["imagenes"].([]map[string]interface{})
-
-	seccionesPost := make([]map[string]interface{}, 0)
-	for _, seccion := range secciones {
-		seccionesPost = append(seccionesPost, map[string]interface{}{
-			"Activo":            true,
-			"FechaCreacion":     nil,
-			"FechaModificacion": nil,
-			"Nombre":            seccion["nombre"],
-			"Descripcion":       seccion["descripcion"],
-			"Valor":             seccion["valor"],
-			"Posicion":          seccion["posicion"],
-			"CamposAdicionales": seccion["camposAdicionales"],
-			"EstilosFuente":     seccion["estilosFuente"],
-		})
-	}
-	PlantillaPost["Secciones"] = seccionesPost
-
-	minutasPost := make([]map[string]interface{}, 0)
-	for _, minuta := range minutas {
-		minutasPost = append(minutasPost, map[string]interface{}{
-			"Activo":            true,
-			"FechaCreacion":     nil,
-			"FechaModificacion": nil,
-			"Nombre":            minuta["nombre"],
-			"Descripcion":       minuta["descripcion"],
-			"Valor":             minuta["valor"],
-			"Posicion":          minuta["posicion"],
-			"CamposAdicionales": minuta["camposAdicionales"],
-			"EstilosFuente":     minuta["estilosFuente"],
-		})
-	}
-	PlantillaPost["Minutas"] = minutasPost
-
-	titulosPost := make([]map[string]interface{}, 0)
-	for _, titulo := range titulos {
-		titulosPost = append(titulosPost, map[string]interface{}{
-			"Activo":            true,
-			"FechaCreacion":     nil,
-			"FechaModificacion": nil,
-			"Nombre":            titulo["nombre"],
-			"Descripcion":       titulo["descripcion"],
-			"Valor":             titulo["valor"],
-			"Posicion":          titulo["posicion"],
-			"CamposAdicionales": titulo["camposAdicionales"],
-			"EstilosFuente":     titulo["estilosFuente"],
-		})
-	}
-	PlantillaPost["Titulos"] = titulosPost
-
-	// imagenesPost := make([]map[string]interface{}, 0)
-	// for _, titulo := range titulos {
-	// 	titulosPost = append(titulosPost, map[string]interface{}{
-	// 		"Activo":            true,
-	// 		"FechaCreacion":     nil,
-	// 		"FechaModificacion": nil,
-	// 		"Nombre":            titulo["nombre"],
-	// 		"Descripcion":       titulo["descripcion"],
-	// 		"Valor":             titulo["valor"],
-	// 		"Posicion":          titulo["posicion"],
-	// 		"CamposAdicionales": titulo["camposAdicionales"],
-	// 		"EstilosFuente":     titulo["estilosFuente"],
-	// 	})
-	// }
-	// PlantillaPost["Titulos"] = titulosPost
 
 	PlantillaPost = map[string]interface{}{
 		"Activo":            true,
@@ -175,35 +142,141 @@ func ActualizarPlantilla(id string, plantilla map[string]interface{}) (status in
 	}
 }
 
-func ConversorDoc(data string) (status interface{}, outputError interface{}) {
-	return nil, nil
+func ConversorDoc(data string) (string, error) {
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	tmpl := template.Must(template.New("").Parse(data))
+
+	var buf bytes.Buffer
+	err := tmpl.Execute(&buf, nil)
+	if err != nil {
+		return "nil", err
+	}
+	pdf.SetFont("Arial", "", 12)
+	pdf.AddPage()
+
+	for _, line := range strings.Split(buf.String(), "\n") {
+		// Eliminar espacios adicionales
+		line = strings.TrimSpace(line)
+
+		// Verificar si la línea es un párrafo HTML o una línea nueva
+		if strings.HasPrefix(line, "<p>") && strings.HasSuffix(line, "</p>") {
+			// Extraer el contenido del párrafo
+			content := strings.TrimPrefix(line, "<p>")
+			content = strings.TrimSuffix(content, "</p>")
+
+			// Agregar el párrafo al PDF
+			pdf.MultiCell(0, 10, content, "", "C", false)
+		} else if line == "<br>" {
+			// Agregar una nueva línea al PDF para <br>
+			pdf.Ln(10)
+		}
+	}
+
+	err = pdf.Output(&buf)
+	if err != nil {
+		return "nil", err
+	}
+
+	err = pdf.OutputFileAndClose("C:/Users/Youssef/Desktop/test.pdf")
+	if err != nil {
+		return "nil", err
+	}
+
+	pdfBase64 := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	return pdfBase64, nil
 }
 
-func ConvertHTMLToPDF(htmlData string) (io.Reader, error) {
-	fmt.Println("Hola")
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
-	if err != nil {
-		fmt.Println("Error al crear el generador de pdf: ", err)
-		log.Fatal(err)
+func generatePDF(htmlString, outputPath string) error {
+	// Crear un nuevo documento PDF
+	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	// Convertir el HTML a PDF usando una plantilla
+	// tmpl, err := template.New("html").Parse(htmlString)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// // Buffer para almacenar el HTML renderizado
+	// var htmlBuffer bytes.Buffer
+
+	// // Renderizar el HTML en el buffer
+	// if err := tmpl.Execute(&htmlBuffer, nil); err != nil {
+	// 	return err
+	// }
+	text := html.UnescapeString(htmlString)
+	fmt.Println("Text: ", text)
+
+	pdf.SetFont("Arial", "", 12)
+
+	// Agregar una nueva página al PDF
+	pdf.AddPage()
+
+	// Configurar el tamaño y la posición de la celda
+	pdf.SetFontSize(12)
+	pdf.CellFormat(190, 10, "", "", 1, "C", false, 0, "")
+
+	// fmt.Println("HtmlBuffer: ", htmlBuffer.String())
+	// fmt.Println("Length: ", len(htmlBuffer.String()))
+	fmt.Println("HtmlBuffer: ", text)
+	fmt.Println("Length: ", len(text))
+
+	pdf.SetFontSize(12)
+	pdf.SetFont("Arial", "", 12)
+
+	// Escribir el HTML renderizado en el PDF
+	pdf.MultiCell(190, 10, text, "", "C", false)
+
+	// Guardar el PDF en el archivo de salida
+	return pdf.OutputFileAndClose(outputPath)
+}
+
+func ConversorHTML(plantilla Plantilla) (string, error) {
+
+	fmt.Println("Entra a la función ConversorHTML")
+
+	fmt.Println("Plantilla: ", plantilla)
+
+	texto := plantilla.Contenido
+
+	fmt.Println("Texto: ", texto)
+
+	patron := `\[_\]`
+
+	expReg := regexp.MustCompile(patron)
+
+	resultados := expReg.Split(texto, -1)
+
+	arreglo := make([]string, 0)
+
+	for i, v := range resultados {
+		arreglo = append(arreglo, v)
+		if i < len(resultados)-1 {
+			arreglo = append(arreglo, "[_]")
+		}
 	}
 
-	pdfg.AddPage(wkhtmltopdf.NewPageReader(bytes.NewReader([]byte(htmlData))))
+	fmt.Println(arreglo)
 
-	err = pdfg.Create()
-	if err != nil {
-		fmt.Println("Error al crear el pdf: ", err)
-		log.Fatal(err)
+	var seccciones = plantilla.Secciones
+
+	data := map[string]interface{}{
+		"Title": plantilla.Nombre,
+		"Items": []Seccion{seccciones[0], seccciones[1], seccciones[2], seccciones[3]},
 	}
 
-	// Write buffer contents to file on disk
-	err = pdfg.WriteFile("./doc.pdf")
+	// Crear una nueva plantilla desde el string
+	tmpl, err := template.New("miPlantilla").Parse(plantilla.Nombre)
 	if err != nil {
-		fmt.Println("Error al escribir el pdf: ", err)
-		log.Fatal(err)
+		return "", err
 	}
 
-	// Convert buffer to io.Reader
-	pdf := bytes.NewReader(pdfg.Bytes())
-
-	return pdf, nil
+	// Ejecutar la plantilla con los datos
+	err = tmpl.Execute(os.Stdout, data)
+	if err != nil {
+		return "", err
+	}
+	return "nil", nil
 }

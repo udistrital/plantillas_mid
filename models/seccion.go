@@ -9,6 +9,17 @@ import (
 	"github.com/udistrital/utils_oas/request"
 )
 
+type Seccion struct {
+	Posicion          string
+	Nombre            string
+	Descripcion       string
+	Campos            []Campo
+	EstiloFuente      EstiloFuente
+	FechaCreacion     string
+	FechaModificacion string
+	Activo            bool
+}
+
 func RegistrarSeccion(seccion map[string]interface{}) (result map[string]interface{}, outputError interface{}) {
 
 	var SeccionPost map[string]interface{}
