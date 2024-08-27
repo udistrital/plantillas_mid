@@ -1,7 +1,6 @@
 package models
 
 type Seccion struct {
-	//Nuevo modelo seccion
 	id                 string
 	padre_id           string
 	tipo_contenido_id  []Tipo_contenido

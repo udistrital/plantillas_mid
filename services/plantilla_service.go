@@ -14,7 +14,7 @@ import (
 func ActualizarPlantilla(idStr string, registroPlantilla models.Plantilla) (interface{}, error) {
 	defer errorhandler.HandlePanic(nil)
 
-	result, err := ActualizarPlantilla(idStr, registroPlantilla)
+	result, err := models.ActualizarPlantilla(idStr, registroPlantilla)
 	if err != nil {
 		return nil, err
 	}
@@ -22,13 +22,10 @@ func ActualizarPlantilla(idStr string, registroPlantilla models.Plantilla) (inte
 }
 
 func RegistrarPlantilla(plantilla models.Plantilla) (interface{}, error) {
-	// Definir la URL del CRUD
 	url := beego.AppConfig.String("PlantillasCrudService") + "/seccion"
 
-	// Variable para almacenar el resultado del registro
 	var resultadoRegistro interface{}
 
-	// Enviar el JSON al CRUD utilizando la función SendJson
 	err := request.SendJson(url, "POST", &resultadoRegistro, plantilla)
 	if err != nil {
 		return nil, errors.New("error al registrar la plantilla en el CRUD: " + err.Error())
@@ -70,22 +67,6 @@ func ConstruirSeccion(seccion map[string]interface{}) (seccionformatted map[stri
 	}
 	SeccionPost["CamposAdicionales"] = campoAdicionalPost
 
-	// imagenesPost := make([]map[string]interface{}, 0)
-	// for _, titulo := range titulos {
-	// 	titulosPost = append(titulosPost, map[string]interface{}{
-	// 		"Activo":            true,
-	// 		"FechaCreacion":     nil,
-	// 		"FechaModificacion": nil,
-	// 		"Nombre":            titulo["nombre"],
-	// 		"Descripcion":       titulo["descripcion"],
-	// 		"Valor":             titulo["valor"],
-	// 		"Posicion":          titulo["posicion"],
-	// 		"CamposAdicionales": titulo["camposAdicionales"],
-	// 		"EstilosFuente":     titulo["estilosFuente"],
-	// 	})
-	// }
-	// PlantillaPost["Titulos"] = titulosPost
-
 	return SeccionPost
 }
 
@@ -111,6 +92,5 @@ func RegistrarSeccion(seccion map[string]interface{}) (result map[string]interfa
 }
 
 func EditPlantillas() (interface{}, error) {
-	// Implementar la lógica para obtener todas las plantillas
 	return nil, nil
 }
