@@ -4,31 +4,18 @@ import (
 	"time"
 )
 
+// Plantilla representa la estructura de la colección 'plantilla'.
 type Plantilla struct {
-	Id                 string
-	tipo_plantilla_id  string
-	secciones          []Seccion
-	sistema_id         string
-	grupo_id           string
-	version            int
-	nombre             string
-	uid                bool
-	activo             bool
-	fecha_creacion     time.Time
-	fecha_modificacion time.Time
-}
-
-func ActualizarPlantilla(idStr string, registroPlantilla Plantilla) (interface{}, error) {
-	// Lógica para actualizar la plantilla
-	return nil, nil
-}
-
-func RegistrarPlantilla(registroPlantilla Plantilla) (interface{}, error) {
-	// Lógica para registrar la plantilla
-	return nil, nil
-}
-
-func EliminarPlantilla(idStr string) error {
-	// Lógica para eliminar la plantilla
-	return nil
+	Id                string                 `json:"_id" bson:"_id"`
+	TipoPlantillaId   string                 `json:"tipo_plantilla_id" bson:"tipo_plantilla_id"`
+	SistemaId         string                 `json:"sistema_id" bson:"sistema_id"`
+	Nombre            string                 `json:"nombre" bson:"nombre"`
+	Contenido         string                 `json:"contenido" bson:"contenido"`
+	GrupoId           string                 `json:"grupo_id" bson:"grupo_id"`
+	Version           int                    `json:"version" bson:"version"`
+	Uid               string                 `json:"uid" bson:"uid"`
+	Metadatos         map[string]interface{} `json:"metadatos" bson:"metadatos"`
+	Activo            bool                   `json:"activo" bson:"activo"`
+	FechaCreacion     time.Time              `json:"fecha_creacion" bson:"fecha_creacion"`
+	FechaModificacion time.Time              `json:"fecha_modificacion" bson:"fecha_modificacion"`
 }

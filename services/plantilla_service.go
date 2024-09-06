@@ -1,158 +1,155 @@
 package services
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"time"
 
-	"github.com/astaxie/beego"
+	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/udistrital/plantillas_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
-	"github.com/udistrital/utils_oas/request"
 )
 
-func RegistrarPlantilla(plantilla models.Plantilla) (interface{}, error) {
-	url := beego.AppConfig.String("PlantillasCrudService") + "/seccion"
-
-	var resultadoRegistro interface{}
-
-	err := request.SendJson(url, "POST", &resultadoRegistro, plantilla)
+func DuplicarPlantilla(id string) (map[string]interface{}, error) {
+	url := fmt.Sprintf("https://mi-crud.com/plantillas/%s", id)
+	resp, err := http.Get(url)
 	if err != nil {
-		return nil, errors.New("error al registrar la plantilla en el CRUD: " + err.Error())
+		return nil, errors.New("error al obtener la plantilla original del CRUD")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, fmt.Errorf("error al obtener la plantilla original del CRUD: %s", string(body))
 	}
 
-	return resultadoRegistro, nil
-}
-
-func ConstruirSeccion(seccion map[string]interface{}) (seccionformatted map[string]interface{}) {
-	Seccion := make(map[string]interface{})
-	Seccion = seccion
-
-	SeccionPost := make(map[string]interface{})
-
-	SeccionPost = map[string]interface{}{
-		"Activo":            true,
-		"FechaCreacion":     nil,
-		"FechaModificacion": nil,
-		"Nombre":            Seccion["nombre"],
-		"Descripcion":       Seccion["descripcion"],
-		"EnlaceDoc":         Seccion["enlaceDoc"],
-		"Version":           Seccion["version"],
+	var plantillaOriginal models.Plantilla
+	if err := json.NewDecoder(resp.Body).Decode(&plantillaOriginal); err != nil {
+		return nil, errors.New("error al decodificar la plantilla original")
 	}
 
-	camposAdicionales := Seccion["camposAdicionales"].([]map[string]interface{})
-
-	campoAdicionalPost := make([]map[string]interface{}, 0)
-	for _, campo := range camposAdicionales {
-		campoAdicionalPost = append(campoAdicionalPost, map[string]interface{}{
-			"Activo":            true,
-			"FechaCreacion":     nil,
-			"FechaModificacion": nil,
-			"Nombre":            campo["nombre"],
-			"Descripcion":       campo["descripcion"],
-			"Valor":             campo["valor"],
-			"Posicion":          campo["posicion"],
-			"EstilosFuente":     campo["estilosFuente"],
-		})
+	plantillaDuplicada := models.Plantilla{
+		Id:                "",
+		TipoPlantillaId:   plantillaOriginal.TipoPlantillaId,
+		SistemaId:         plantillaOriginal.SistemaId,
+		Nombre:            plantillaOriginal.Nombre + " - Copia",
+		Contenido:         plantillaOriginal.Contenido,
+		GrupoId:           plantillaOriginal.GrupoId,
+		Version:           plantillaOriginal.Version + 1,
+		Uid:               plantillaOriginal.Uid,
+		Metadatos:         plantillaOriginal.Metadatos,
+		Activo:            true,
+		FechaCreacion:     time.Now(),
+		FechaModificacion: time.Now(),
 	}
-	SeccionPost["CamposAdicionales"] = campoAdicionalPost
 
-	return SeccionPost
-}
-
-func RegistrarSeccion(seccion map[string]interface{}) (result map[string]interface{}, outputError interface{}) {
-
-	var SeccionPost map[string]interface{}
-	var resultadoRegistro map[string]interface{}
-	var errReg interface{}
-
-	SeccionPost = ConstruirSeccion(seccion)
-
-	errReg = request.SendJson(beego.AppConfig.String("PlantillasCrudService")+"/seccion", "POST", &resultadoRegistro, SeccionPost)
-
-	if resultadoRegistro["Status"] == "400" || errReg != nil {
-		fmt.Println(errReg)
-		return nil, errReg
-
-	} else {
-		formatdata.JsonPrint(resultadoRegistro)
-		return resultadoRegistro, nil
-
+	payload, err := json.Marshal(plantillaDuplicada)
+	if err != nil {
+		return nil, errors.New("error al convertir la plantilla duplicada a JSON")
 	}
-}
 
-func EditPlantillas() (interface{}, error) {
-	return nil, nil
-}
-
-// CrearPlantilla - Crea una nueva plantilla en la base de datos.
-func CrearPlantilla(plantilla models.Plantilla) (models.Plantilla, error) {
-	var resultado models.Plantilla
-	// Uso de request para insertar la plantilla en el backend correspondiente.
-	if err := request.SendJson("POST", "/path/to/endpoint", &resultado, plantilla); err != nil {
-		beego.Error("Error al crear plantilla: ", err)
-		return models.Plantilla{}, err
+	req, err := http.NewRequest("POST", "https://mi-crud.com/plantillas", bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, errors.New("error al crear la solicitud HTTP para duplicar la plantilla")
 	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, errors.New("error al enviar la solicitud al CRUD")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, fmt.Errorf("error del CRUD al duplicar la plantilla: %s", string(body))
+	}
+
+	var resultado map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&resultado); err != nil {
+		return nil, errors.New("error al decodificar la respuesta del CRUD")
+	}
+
 	return resultado, nil
 }
 
-// ActualizarPlantilla - Actualiza una plantilla existente por su ID.
-func ActualizarPlantilla(id string, plantilla models.Plantilla) (models.Plantilla, error) {
-	var resultado models.Plantilla
-	url := fmt.Sprintf("/path/to/endpoint/%s", id)
-	if err := request.SendJson("PUT", url, &resultado, plantilla); err != nil {
-		beego.Error("Error al actualizar plantilla: ", err)
-		return models.Plantilla{}, err
+func ConstruirPlantilla(body map[string]interface{}) (string, error) {
+	contenido, ok := body["contenido"].(string)
+	if !ok {
+		return "", errors.New("el JSON no contiene un campo 'contenido' válido")
 	}
-	return resultado, nil
+
+	// Generar el PDF
+	pdfg, err := wkhtmltopdf.NewPDFGenerator()
+	if err != nil {
+		return "", errors.New("error al crear el generador de PDF")
+	}
+
+	pdfg.AddPage(wkhtmltopdf.NewPageReader(bytes.NewReader([]byte(contenido))))
+	pdfg.MarginLeft.Set(10)
+	pdfg.MarginRight.Set(10)
+	pdfg.MarginTop.Set(10)
+	pdfg.MarginBottom.Set(10)
+
+	if err := pdfg.Create(); err != nil {
+		return "", errors.New("error al generar el PDF")
+	}
+
+	pdfBytes := pdfg.Bytes()
+
+	// Probar la generación del archivo guardándolo localmente
+	if err := ioutil.WriteFile("plantilla_generada.pdf", pdfBytes, 0644); err != nil {
+		return "", errors.New("error al guardar el PDF localmente para pruebas")
+	}
+
+	// Supuesto almacenamiento en Nuxeo
+	uid, err := almacenarEnNuxeo(pdfBytes)
+	if err != nil {
+		return "", err
+	}
+
+	return uid, nil
 }
 
-// DuplicarPlantilla - Duplicar una plantilla existente.
-func DuplicarPlantilla(id string) (models.Plantilla, error) {
-	var plantilla models.Plantilla
-	url := fmt.Sprintf("/path/to/endpoint/%s", id)
-	if err := request.GetJson(url, &plantilla); err != nil {
-		beego.Error("Error al obtener plantilla para duplicar: ", err)
-		return models.Plantilla{}, err
+// Función que simula el almacenamiento en Nuxeo
+func almacenarEnNuxeo(pdfBytes []byte) (string, error) {
+	// Aquí agregarías la lógica real para subir el PDF a Nuxeo.
+	// Este es un ejemplo hipotético de cómo podrías hacerlo.
+
+	url := "https://nuxeo-server.com/api/v1/upload" // Suponiendo que esta es la URL de Nuxeo
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(pdfBytes))
+	if err != nil {
+		return "", errors.New("error al crear la solicitud HTTP para Nuxeo")
 	}
 
-	nuevaPlantilla := plantilla
-	nuevaPlantilla.Id = "" // Nuevo ID para la plantilla duplicada
+	req.Header.Set("Content-Type", "application/pdf")
 
-	var resultado models.Plantilla
-	if err := request.SendJson("POST", "/path/to/endpoint", &resultado, nuevaPlantilla); err != nil {
-		beego.Error("Error al duplicar plantilla: ", err)
-		return models.Plantilla{}, err
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", errors.New("error al enviar la solicitud a Nuxeo")
 	}
-	return resultado, nil
-}
+	defer resp.Body.Close()
 
-// DeletePlantilla - Elimina una plantilla en función de su ID.
-func DeletePlantilla(id string) error {
-	url := fmt.Sprintf("/path/to/endpoint/%s", id)
-	if err := request.SendJson("DELETE", url, nil, nil); err != nil {
-		beego.Error("Error al eliminar plantilla: ", err)
-		return err
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return "", fmt.Errorf("error del servidor Nuxeo: %s", string(body))
 	}
-	return nil
-}
 
-// GetPlantillas - Obtiene todas las plantillas.
-func GetPlantillas() ([]models.Plantilla, error) {
-	var plantillas []models.Plantilla
-	if err := request.GetJson("/path/to/endpoint", &plantillas); err != nil {
-		beego.Error("Error al obtener plantillas: ", err)
-		return nil, err
+	// Supongamos que Nuxeo devuelve el UID en el cuerpo de la respuesta
+	var nuxeoResponse map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&nuxeoResponse); err != nil {
+		return "", errors.New("error al decodificar la respuesta de Nuxeo")
 	}
-	return plantillas, nil
-}
 
-// GetVersiones - Devuelve las versiones de una plantilla específica por su ID.
-func GetVersiones(id string) ([]models.Plantilla, error) {
-	var versiones []models.Plantilla
-	url := fmt.Sprintf("/path/to/endpoint/versiones/%s", id)
-	if err := request.GetJson(url, &versiones); err != nil {
-		beego.Error("Error al obtener versiones de la plantilla: ", err)
-		return nil, err
+	uid, ok := nuxeoResponse["uid"].(string)
+	if !ok {
+		return "", errors.New("la respuesta de Nuxeo no contiene un UID válido")
 	}
-	return versiones, nil
+
+	return uid, nil
 }

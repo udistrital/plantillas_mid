@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/aws/aws-sdk-go v1.44.316 // indirect
 	github.com/aws/aws-xray-sdk-go v1.8.1 // indirect
