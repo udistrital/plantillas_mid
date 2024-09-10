@@ -19,6 +19,8 @@ func init() {
 			beego.NSInclude(
 				&controllers.PlantillaController{},
 			),
+			// Asegúrate de que esta línea esté incluida
+			beego.NSRouter("/pruebaconexion", &controllers.PlantillaController{}, "get:PruebaConexion"),
 		),
 	)
 	beego.AddNamespace(ns)

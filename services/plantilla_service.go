@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,15 +10,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/udistrital/plantillas_mid/models"
 )
 
 func DuplicarPlantilla(id string) (map[string]interface{}, error) {
-	url := fmt.Sprintf("https://mi-crud.com/plantillas/%s", id)
+	// URL del CRUD para obtener la plantilla original
+	url := fmt.Sprintf("https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/plantillas/%s", id)
+
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, errors.New("error al obtener la plantilla original del CRUD")
+		return nil, fmt.Errorf("error al obtener la plantilla original del CRUD: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -28,39 +30,38 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 
 	var plantillaOriginal models.Plantilla
 	if err := json.NewDecoder(resp.Body).Decode(&plantillaOriginal); err != nil {
-		return nil, errors.New("error al decodificar la plantilla original")
+		return nil, fmt.Errorf("error al decodificar la plantilla original: %v", err)
 	}
 
+	// Crear la plantilla duplicada eliminando campos generados automáticamente
 	plantillaDuplicada := models.Plantilla{
-		Id:                "",
-		TipoPlantillaId:   plantillaOriginal.TipoPlantillaId,
-		SistemaId:         plantillaOriginal.SistemaId,
-		Nombre:            plantillaOriginal.Nombre + " - Copia",
-		Contenido:         plantillaOriginal.Contenido,
-		GrupoId:           plantillaOriginal.GrupoId,
-		Version:           plantillaOriginal.Version + 1,
-		Uid:               plantillaOriginal.Uid,
-		Metadatos:         plantillaOriginal.Metadatos,
-		Activo:            true,
-		FechaCreacion:     time.Now(),
-		FechaModificacion: time.Now(),
+		TipoPlantillaId: plantillaOriginal.TipoPlantillaId,
+		SistemaId:       plantillaOriginal.SistemaId,
+		Nombre:          plantillaOriginal.Nombre + " - Copia",
+		Contenido:       plantillaOriginal.Contenido,
+		GrupoId:         plantillaOriginal.GrupoId,
+		Version:         plantillaOriginal.Version + 1,
+		Uid:             plantillaOriginal.Uid,
+		Metadatos:       plantillaOriginal.Metadatos,
+		Activo:          true,
 	}
 
 	payload, err := json.Marshal(plantillaDuplicada)
 	if err != nil {
-		return nil, errors.New("error al convertir la plantilla duplicada a JSON")
+		return nil, fmt.Errorf("error al convertir la plantilla duplicada a JSON: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://mi-crud.com/plantillas", bytes.NewBuffer(payload))
+	// URL del CRUD para crear la nueva plantilla
+	req, err := http.NewRequest("POST", "https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/plantillas", bytes.NewBuffer(payload))
 	if err != nil {
-		return nil, errors.New("error al crear la solicitud HTTP para duplicar la plantilla")
+		return nil, fmt.Errorf("error al crear la solicitud HTTP para duplicar la plantilla: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err = client.Do(req)
 	if err != nil {
-		return nil, errors.New("error al enviar la solicitud al CRUD")
+		return nil, fmt.Errorf("error al enviar la solicitud al CRUD: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -71,85 +72,79 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 
 	var resultado map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&resultado); err != nil {
-		return nil, errors.New("error al decodificar la respuesta del CRUD")
+		return nil, fmt.Errorf("error al decodificar la respuesta del CRUD: %v", err)
 	}
 
 	return resultado, nil
 }
 
-func ConstruirPlantilla(body map[string]interface{}) (string, error) {
-	contenido, ok := body["contenido"].(string)
-	if !ok {
-		return "", errors.New("el JSON no contiene un campo 'contenido' válido")
-	}
-
-	// Generar el PDF
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
-	if err != nil {
-		return "", errors.New("error al crear el generador de PDF")
-	}
-
-	pdfg.AddPage(wkhtmltopdf.NewPageReader(bytes.NewReader([]byte(contenido))))
-	pdfg.MarginLeft.Set(10)
-	pdfg.MarginRight.Set(10)
-	pdfg.MarginTop.Set(10)
-	pdfg.MarginBottom.Set(10)
-
-	if err := pdfg.Create(); err != nil {
-		return "", errors.New("error al generar el PDF")
-	}
-
-	pdfBytes := pdfg.Bytes()
-
-	// Probar la generación del archivo guardándolo localmente
-	if err := ioutil.WriteFile("plantilla_generada.pdf", pdfBytes, 0644); err != nil {
-		return "", errors.New("error al guardar el PDF localmente para pruebas")
-	}
-
-	// Supuesto almacenamiento en Nuxeo
-	uid, err := almacenarEnNuxeo(pdfBytes)
-	if err != nil {
-		return "", err
-	}
-
-	return uid, nil
+type PDFRequest struct {
+	HTML  string                 `json:"html"`
+	CSS   string                 `json:"css,omitempty"`
+	Datos map[string]interface{} `json:"datos,omitempty"`
 }
 
-// Función que simula el almacenamiento en Nuxeo
-func almacenarEnNuxeo(pdfBytes []byte) (string, error) {
-	// Aquí agregarías la lógica real para subir el PDF a Nuxeo.
-	// Este es un ejemplo hipotético de cómo podrías hacerlo.
+type PDFResponse struct {
+	Message string `json:"Message"`
+	Success bool   `json:"Success"`
+	Status  int    `json:"Status"`
+	Data    string `json:"Data"`
+}
 
-	url := "https://nuxeo-server.com/api/v1/upload" // Suponiendo que esta es la URL de Nuxeo
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(pdfBytes))
-	if err != nil {
-		return "", errors.New("error al crear la solicitud HTTP para Nuxeo")
+func RenderizarPDF(html, css string, datos map[string]interface{}) ([]byte, error) {
+	url := "http://localhost:RENDERIZADO_HTML_PORT/pdf"
+
+	pdfRequest := PDFRequest{
+		HTML:  html,
+		CSS:   css,
+		Datos: datos,
 	}
 
-	req.Header.Set("Content-Type", "application/pdf")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	jsonData, err := json.Marshal(pdfRequest)
 	if err != nil {
-		return "", errors.New("error al enviar la solicitud a Nuxeo")
+		return nil, err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return "", fmt.Errorf("error del servidor Nuxeo: %s", string(body))
+	var pdfResponse PDFResponse
+	err = json.NewDecoder(resp.Body).Decode(&pdfResponse)
+	if err != nil {
+		return nil, err
 	}
 
-	// Supongamos que Nuxeo devuelve el UID en el cuerpo de la respuesta
-	var nuxeoResponse map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&nuxeoResponse); err != nil {
-		return "", errors.New("error al decodificar la respuesta de Nuxeo")
+	if !pdfResponse.Success {
+		return nil, errors.New(pdfResponse.Message)
 	}
 
-	uid, ok := nuxeoResponse["uid"].(string)
-	if !ok {
-		return "", errors.New("la respuesta de Nuxeo no contiene un UID válido")
+	pdfData, err := base64.StdEncoding.DecodeString(pdfResponse.Data)
+	if err != nil {
+		return nil, err
 	}
 
-	return uid, nil
+	return pdfData, nil
+}
+
+func ComprobarConexionCRUD() error {
+	url := "https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/health"
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return fmt.Errorf("error al intentar conectar con el CRUD: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New("el CRUD no está disponible o respondió con un código de estado no esperado")
+	}
+
+	return nil
 }
