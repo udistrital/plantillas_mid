@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Plantilla representa la estructura de la colección 'plantilla'.
 type Plantilla struct {
 	Id                string                 `json:"_id" bson:"_id"`
 	TipoPlantillaId   string                 `json:"tipo_plantilla_id" bson:"tipo_plantilla_id"`

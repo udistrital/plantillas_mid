@@ -121,21 +121,17 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 	return resultado, nil
 }
 
-// ProcesarPlantilla valida los datos de entrada y procesa la plantilla.
 func ProcesarPlantilla(requestData map[string]interface{}) (string, error) {
-	// Validación de nombrePlantilla
 	nombrePlantilla, ok := requestData["nombre_plantilla"].(string)
 	if !ok {
 		return "", errors.New("Falta 'nombre_plantilla' en el JSON")
 	}
 
-	// Validación de htmlContent
 	htmlContent, ok := requestData["html"].(string)
 	if !ok {
 		return "", errors.New("Falta 'html' en el JSON")
 	}
 
-	// Validación de camposDinamicos
 	camposDinamicos, ok := requestData["campos_dinamicos"].(map[string]interface{})
 	if !ok {
 		return "", errors.New("Falta 'campos_dinamicos' en el JSON")
@@ -207,16 +203,15 @@ func EnviarDocumento(base64PDF, nombrePlantilla string) (string, error) {
 	return documentoResponse.Res.Enlace, nil
 }
 
-// ProcesarPlantilla valida los datos de entrada y procesa la plantilla.
 func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
+	tipoPlantillaId, ok := requestData["tipo_plantillaId"].(string)
+	if !ok {
+		return "", errors.New("Falta 'tipo_plantillaId' en el JSON")
+	}
+
 	nombrePlantilla, ok := requestData["nombre_plantilla"].(string)
 	if !ok {
 		return "", errors.New("Falta 'nombre_plantilla' en el JSON")
-	}
-
-	htmlContent, ok := requestData["html"].(string)
-	if !ok {
-		return "", errors.New("Falta 'html' en el JSON")
 	}
 
 	camposDinamicos, ok := requestData["campos_dinamicos"].(map[string]interface{})
@@ -224,7 +219,23 @@ func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
 		return "", errors.New("Falta 'campos_dinamicos' en el JSON")
 	}
 
-	htmlProcesado := helpers.ReemplazarCamposDinamicos(htmlContent, camposDinamicos)
+	url := fmt.Sprintf("https://xxxxxxxxxxxxx/endpoint/%s", tipoPlantillaId)
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("error al hacer la solicitud al endpoint: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("error en la respuesta del endpoint: %s", resp.Status)
+	}
+
+	htmlContent, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error al leer la respuesta del endpoint: %v", err)
+	}
+
+	htmlProcesado := helpers.ReemplazarCamposDinamicos(string(htmlContent), camposDinamicos)
 
 	base64PDF, err := helpers.ConvertHTMLToPDF(htmlProcesado, "", nombrePlantilla)
 	if err != nil {
