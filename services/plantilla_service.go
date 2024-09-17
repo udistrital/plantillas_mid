@@ -2,7 +2,6 @@ package services
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,11 +9,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/udistrital/plantillas_mid/helpers"
 	"github.com/udistrital/plantillas_mid/models"
 )
 
+type DocumentoResponse struct {
+	Status string `json:"Status"`
+	Res    struct {
+		Enlace string `json:"Enlace"`
+	} `json:"res"`
+}
+
 func DuplicarPlantilla(id string) (map[string]interface{}, error) {
-	// URL del CRUD para obtener la plantilla original
 	url := fmt.Sprintf("https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/plantillas/%s", id)
 
 	resp, err := http.Get(url)
@@ -33,7 +39,6 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("error al decodificar la plantilla original: %v", err)
 	}
 
-	// Crear la plantilla duplicada eliminando campos generados automáticamente
 	plantillaDuplicada := models.Plantilla{
 		TipoPlantillaId: plantillaOriginal.TipoPlantillaId,
 		SistemaId:       plantillaOriginal.SistemaId,
@@ -51,7 +56,6 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("error al convertir la plantilla duplicada a JSON: %v", err)
 	}
 
-	// URL del CRUD para crear la nueva plantilla
 	req, err := http.NewRequest("POST", "https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/plantillas", bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("error al crear la solicitud HTTP para duplicar la plantilla: %v", err)
@@ -75,58 +79,159 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("error al decodificar la respuesta del CRUD: %v", err)
 	}
 
-	return resultado, nil
-}
-
-type PDFRequest struct {
-	HTML  string                 `json:"html"`
-	CSS   string                 `json:"css,omitempty"`
-	Datos map[string]interface{} `json:"datos,omitempty"`
-}
-
-type PDFResponse struct {
-	Message string `json:"Message"`
-	Success bool   `json:"Success"`
-	Status  int    `json:"Status"`
-	Data    string `json:"Data"`
-}
-
-func RenderizarPDF(html, css string, datos map[string]interface{}) ([]byte, error) {
-	url := "http://localhost:RENDERIZADO_HTML_PORT/pdf"
-
-	pdfRequest := PDFRequest{
-		HTML:  html,
-		CSS:   css,
-		Datos: datos,
+	documentPayload := map[string]interface{}{
+		"nombre":    plantillaDuplicada.Nombre,
+		"contenido": plantillaDuplicada.Contenido,
 	}
 
-	jsonData, err := json.Marshal(pdfRequest)
+	documentPayloadBytes, err := json.Marshal(documentPayload)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error al convertir el payload del documento a JSON: %v", err)
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	req, err = http.NewRequest("POST", "https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/document/store_document", bytes.NewBuffer(documentPayloadBytes))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error al crear la solicitud HTTP para almacenar el documento en gestor_documental_mid: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error al enviar la solicitud a gestor_documental_mid: %v", err)
 	}
 	defer resp.Body.Close()
 
-	var pdfResponse PDFResponse
-	err = json.NewDecoder(resp.Body).Decode(&pdfResponse)
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, fmt.Errorf("error al almacenar el documento en gestor_documental_mid: %s", string(body))
+	}
+
+	var gestorDocumentalResponse map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&gestorDocumentalResponse); err != nil {
+		return nil, fmt.Errorf("error al decodificar la respuesta de gestor_documental_mid: %v", err)
+	}
+
+	uid, ok := gestorDocumentalResponse["uid"].(string)
+	if !ok {
+		return nil, fmt.Errorf("el uid no se encuentra en la respuesta de gestor_documental_mid")
+	}
+
+	resultado["uid_documento"] = uid
+
+	return resultado, nil
+}
+
+// ProcesarPlantilla valida los datos de entrada y procesa la plantilla.
+func ProcesarPlantilla(requestData map[string]interface{}) (string, error) {
+	// Validación de nombrePlantilla
+	nombrePlantilla, ok := requestData["nombre_plantilla"].(string)
+	if !ok {
+		return "", errors.New("Falta 'nombre_plantilla' en el JSON")
+	}
+
+	// Validación de htmlContent
+	htmlContent, ok := requestData["html"].(string)
+	if !ok {
+		return "", errors.New("Falta 'html' en el JSON")
+	}
+
+	// Validación de camposDinamicos
+	camposDinamicos, ok := requestData["campos_dinamicos"].(map[string]interface{})
+	if !ok {
+		return "", errors.New("Falta 'campos_dinamicos' en el JSON")
+	}
+
+	htmlProcesado := helpers.ReemplazarCamposDinamicos(htmlContent, camposDinamicos)
+
+	base64PDF, err := helpers.ConvertHTMLToPDF(htmlProcesado, "", nombrePlantilla)
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("error al convertir HTML a PDF: %v", err)
 	}
 
-	if !pdfResponse.Success {
-		return nil, errors.New(pdfResponse.Message)
-	}
-
-	pdfData, err := base64.StdEncoding.DecodeString(pdfResponse.Data)
+	enlace, err := EnviarDocumento(base64PDF, nombrePlantilla)
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("error al enviar documento: %v", err)
 	}
 
-	return pdfData, nil
+	return enlace, nil
+}
+
+func EnviarDocumento(base64PDF, nombrePlantilla string) (string, error) {
+	url := "http://pruebasapi2.intranetoas.udistrital.edu.co:8199/v1/document/store_document"
+
+	payload := []map[string]interface{}{
+		{
+			"IdTipoDocumento": 170,
+			"nombre":          nombrePlantilla,
+			"metadatos": map[string]string{
+				"dato_a": "string",
+				"dato_b": "string",
+				"dato_n": "string",
+			},
+			"descripcion": "Plantillas",
+			"file":        base64PDF,
+		},
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return "", fmt.Errorf("error al serializar el payload: %v", err)
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return "", fmt.Errorf("error en la petición POST: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		return "", fmt.Errorf("error en la respuesta del servidor: %s", string(bodyBytes))
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error al leer la respuesta del servidor: %v", err)
+	}
+
+	var documentoResponse DocumentoResponse
+	err = json.Unmarshal(body, &documentoResponse)
+	if err != nil {
+		return "", fmt.Errorf("error al deserializar la respuesta: %v", err)
+	}
+
+	if documentoResponse.Status != "200" {
+		return "", fmt.Errorf("error en la respuesta del servicio: %s", documentoResponse.Status)
+	}
+
+	return documentoResponse.Res.Enlace, nil
+}
+
+// ProcesarPlantilla valida los datos de entrada y procesa la plantilla.
+func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
+	nombrePlantilla, ok := requestData["nombre_plantilla"].(string)
+	if !ok {
+		return "", errors.New("Falta 'nombre_plantilla' en el JSON")
+	}
+
+	htmlContent, ok := requestData["html"].(string)
+	if !ok {
+		return "", errors.New("Falta 'html' en el JSON")
+	}
+
+	camposDinamicos, ok := requestData["campos_dinamicos"].(map[string]interface{})
+	if !ok {
+		return "", errors.New("Falta 'campos_dinamicos' en el JSON")
+	}
+
+	htmlProcesado := helpers.ReemplazarCamposDinamicos(htmlContent, camposDinamicos)
+
+	base64PDF, err := helpers.ConvertHTMLToPDF(htmlProcesado, "", nombrePlantilla)
+	if err != nil {
+		return "", fmt.Errorf("error al convertir HTML a PDF: %v", err)
+	}
+
+	return base64PDF, nil
 }
 
 func ComprobarConexionCRUD() error {
