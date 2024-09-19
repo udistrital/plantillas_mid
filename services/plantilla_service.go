@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/udistrital/plantillas_mid/helpers"
 	"github.com/udistrital/plantillas_mid/models"
 )
@@ -132,14 +133,7 @@ func ProcesarPlantilla(requestData map[string]interface{}) (string, error) {
 		return "", errors.New("Falta 'html' en el JSON")
 	}
 
-	camposDinamicos, ok := requestData["campos_dinamicos"].(map[string]interface{})
-	if !ok {
-		return "", errors.New("Falta 'campos_dinamicos' en el JSON")
-	}
-
-	htmlProcesado := helpers.ReemplazarCamposDinamicos(htmlContent, camposDinamicos)
-
-	base64PDF, err := helpers.ConvertHTMLToPDF(htmlProcesado, "", nombrePlantilla)
+	base64PDF, err := helpers.ConvertHTMLToPDF(htmlContent, "", nombrePlantilla)
 	if err != nil {
 		return "", fmt.Errorf("error al convertir HTML a PDF: %v", err)
 	}
@@ -149,64 +143,66 @@ func ProcesarPlantilla(requestData map[string]interface{}) (string, error) {
 		return "", fmt.Errorf("error al enviar documento: %v", err)
 	}
 
+	sistemaId, ok := requestData["sistema_id"].(string)
+	if !ok {
+		return "", errors.New("Falta 'sistema_id' en el JSON")
+	}
+
+	tipoPlantillaId, ok := requestData["tipo_plantilla_id"].(string)
+	if !ok {
+		return "", errors.New("Falta 'tipo_plantilla_id' en el JSON")
+	}
+
+	grupoId, ok := requestData["GrupoId"].(string)
+	if !ok {
+		return "", errors.New("Falta 'GrupoId' en el JSON")
+	}
+
+	plantilla := models.Plantilla{
+		TipoPlantillaId: tipoPlantillaId,
+		SistemaId:       sistemaId,
+		Nombre:          nombrePlantilla,
+		Contenido:       htmlContent,
+		GrupoId:         grupoId,
+		Activo:          true,
+		Version:         1,
+		Uid:             enlace,
+	}
+
+	err = models.AlmacenarPlantilla(plantilla)
+	if err != nil {
+		return "", fmt.Errorf("error al almacenar la plantilla: %v", err)
+	}
+
 	return enlace, nil
 }
 
-func EnviarDocumento(base64PDF, nombrePlantilla string) (string, error) {
-	url := "http://pruebasapi2.intranetoas.udistrital.edu.co:8199/v1/document/store_document"
-
-	payload := []map[string]interface{}{
-		{
-			"IdTipoDocumento": 170,
-			"nombre":          nombrePlantilla,
-			"metadatos": map[string]string{
-				"dato_a": "string",
-				"dato_b": "string",
-				"dato_n": "string",
-			},
-			"descripcion": "Plantillas",
-			"file":        base64PDF,
-		},
+func EnviarDocumento(base64PDF, nombrePlantilla string) (enlace string, err error) {
+	gestorDocumentalURL := beego.AppConfig.String("GestorDocumental")
+	if gestorDocumentalURL == "" {
+		return "", fmt.Errorf("la variable de entorno 'GestorDocumental' no está definida")
 	}
 
-	payloadBytes, err := json.Marshal(payload)
+	payload := models.CrearGestorDocumentalPayload(nombrePlantilla, base64PDF)
+
+	var resultadoRegistro map[string]interface{}
+
+	err = models.SendJson("http://"+gestorDocumentalURL+"/document/upload", "POST", &resultadoRegistro, payload)
 	if err != nil {
-		return "", fmt.Errorf("error al serializar el payload: %v", err)
+		return "", fmt.Errorf("error al enviar documento: %v", err)
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		return "", fmt.Errorf("error en la petición POST: %v", err)
+	if resultadoRegistro["Status"].(string) == "200" {
+		return resultadoRegistro["EnlaceDocumento"].(string), nil
+	} else {
+		return "", fmt.Errorf("error al registrar el documento: %v", resultadoRegistro["Error"].(string))
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		return "", fmt.Errorf("error en la respuesta del servidor: %s", string(bodyBytes))
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("error al leer la respuesta del servidor: %v", err)
-	}
-
-	var documentoResponse DocumentoResponse
-	err = json.Unmarshal(body, &documentoResponse)
-	if err != nil {
-		return "", fmt.Errorf("error al deserializar la respuesta: %v", err)
-	}
-
-	if documentoResponse.Status != "200" {
-		return "", fmt.Errorf("error en la respuesta del servicio: %s", documentoResponse.Status)
-	}
-
-	return documentoResponse.Res.Enlace, nil
 }
 
 func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
-	tipoPlantillaId, ok := requestData["tipo_plantillaId"].(string)
+	PlantillaId, ok := requestData["PlantillaId"].(string)
 	if !ok {
-		return "", errors.New("Falta 'tipo_plantillaId' en el JSON")
+		return "", errors.New("Falta 'PlantillaId' en el JSON")
 	}
 
 	nombrePlantilla, ok := requestData["nombre_plantilla"].(string)
@@ -219,7 +215,7 @@ func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
 		return "", errors.New("Falta 'campos_dinamicos' en el JSON")
 	}
 
-	url := fmt.Sprintf("https://xxxxxxxxxxxxx/endpoint/%s", tipoPlantillaId)
+	url := fmt.Sprintf("https://xxxxxxxxxxxxx/endpoint/%s", PlantillaId)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("error al hacer la solicitud al endpoint: %v", err)
