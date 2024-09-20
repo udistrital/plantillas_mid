@@ -21,6 +21,7 @@ func init() {
 			),
 			beego.NSRouter("/pruebaconexion", &controllers.PlantillaController{}, "get:PruebaConexion"),
 			beego.NSRouter("/construir-plantilla", &controllers.PlantillaController{}, "post:ConstruirPlantilla"),
+			beego.NSRouter("/construir-documento", &controllers.PlantillaController{}, "post:ConstruirDocumento"),
 		),
 	)
 	beego.AddNamespace(ns)

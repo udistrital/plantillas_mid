@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/plantillas_mid/helpers"
 	"github.com/udistrital/plantillas_mid/models"
+	"github.com/udistrital/utils_oas/request"
 )
 
 type DocumentoResponse struct {
@@ -22,7 +24,13 @@ type DocumentoResponse struct {
 }
 
 func DuplicarPlantilla(id string) (map[string]interface{}, error) {
-	url := fmt.Sprintf("https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/plantillas/%s", id)
+
+	plantillasCrudService := beego.AppConfig.String("PlantillasCrudService")
+	if plantillasCrudService == "" {
+		return nil, errors.New("la variable de entorno 'PlantillasCrudService' no está configurada")
+	}
+
+	url := fmt.Sprintf("http://%s/plantilla/%s", plantillasCrudService, id)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -43,7 +51,7 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 	plantillaDuplicada := models.Plantilla{
 		TipoPlantillaId: plantillaOriginal.TipoPlantillaId,
 		SistemaId:       plantillaOriginal.SistemaId,
-		Nombre:          plantillaOriginal.Nombre + " - Copia",
+		Nombre:          plantillaOriginal.Nombre + " (versión duplicada)",
 		Contenido:       plantillaOriginal.Contenido,
 		GrupoId:         plantillaOriginal.GrupoId,
 		Version:         plantillaOriginal.Version + 1,
@@ -57,7 +65,7 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("error al convertir la plantilla duplicada a JSON: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/plantillas", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "http://"+plantillasCrudService+"/plantilla", bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("error al crear la solicitud HTTP para duplicar la plantilla: %v", err)
 	}
@@ -80,6 +88,11 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("error al decodificar la respuesta del CRUD: %v", err)
 	}
 
+	gestorDocumentalService := beego.AppConfig.String("GestorDocumental")
+	if gestorDocumentalService == "" {
+		return nil, errors.New("la variable de entorno 'GestorDocumental' no está configurada")
+	}
+
 	documentPayload := map[string]interface{}{
 		"nombre":    plantillaDuplicada.Nombre,
 		"contenido": plantillaDuplicada.Contenido,
@@ -90,7 +103,7 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("error al convertir el payload del documento a JSON: %v", err)
 	}
 
-	req, err = http.NewRequest("POST", "https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/document/store_document", bytes.NewBuffer(documentPayloadBytes))
+	req, err = http.NewRequest("POST", "http://"+gestorDocumentalService+"/document/store_document", bytes.NewBuffer(documentPayloadBytes))
 	if err != nil {
 		return nil, fmt.Errorf("error al crear la solicitud HTTP para almacenar el documento en gestor_documental_mid: %v", err)
 	}
@@ -112,7 +125,7 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("error al decodificar la respuesta de gestor_documental_mid: %v", err)
 	}
 
-	uid, ok := gestorDocumentalResponse["uid"].(string)
+	uid, ok := gestorDocumentalResponse["Enlace"].(string)
 	if !ok {
 		return nil, fmt.Errorf("el uid no se encuentra en la respuesta de gestor_documental_mid")
 	}
@@ -123,47 +136,27 @@ func DuplicarPlantilla(id string) (map[string]interface{}, error) {
 }
 
 func ProcesarPlantilla(requestData map[string]interface{}) (string, error) {
-	nombrePlantilla, ok := requestData["nombre_plantilla"].(string)
-	if !ok {
-		return "", errors.New("Falta 'nombre_plantilla' en el JSON")
+	params, err := helpers.ValidarPlantillaParametros(requestData)
+	if err != nil {
+		return "", err
 	}
 
-	htmlContent, ok := requestData["html"].(string)
-	if !ok {
-		return "", errors.New("Falta 'html' en el JSON")
-	}
-
-	base64PDF, err := helpers.ConvertHTMLToPDF(htmlContent, "", nombrePlantilla)
+	base64PDF, err := helpers.ConvertHTMLToPDF(params.HTMLContent, "", params.NombrePlantilla)
 	if err != nil {
 		return "", fmt.Errorf("error al convertir HTML a PDF: %v", err)
 	}
 
-	enlace, err := EnviarDocumento(base64PDF, nombrePlantilla)
+	enlace, err := EnviarDocumento(base64PDF, params.NombrePlantilla)
 	if err != nil {
 		return "", fmt.Errorf("error al enviar documento: %v", err)
 	}
 
-	sistemaId, ok := requestData["sistema_id"].(string)
-	if !ok {
-		return "", errors.New("Falta 'sistema_id' en el JSON")
-	}
-
-	tipoPlantillaId, ok := requestData["tipo_plantilla_id"].(string)
-	if !ok {
-		return "", errors.New("Falta 'tipo_plantilla_id' en el JSON")
-	}
-
-	grupoId, ok := requestData["GrupoId"].(string)
-	if !ok {
-		return "", errors.New("Falta 'GrupoId' en el JSON")
-	}
-
 	plantilla := models.Plantilla{
-		TipoPlantillaId: tipoPlantillaId,
-		SistemaId:       sistemaId,
-		Nombre:          nombrePlantilla,
-		Contenido:       htmlContent,
-		GrupoId:         grupoId,
+		TipoPlantillaId: params.TipoPlantillaId,
+		SistemaId:       params.SistemaId,
+		Nombre:          params.NombrePlantilla,
+		Contenido:       params.HTMLContent,
+		GrupoId:         params.GrupoId,
 		Activo:          true,
 		Version:         1,
 		Uid:             enlace,
@@ -183,57 +176,43 @@ func EnviarDocumento(base64PDF, nombrePlantilla string) (enlace string, err erro
 		return "", fmt.Errorf("la variable de entorno 'GestorDocumental' no está definida")
 	}
 
-	payload := models.CrearGestorDocumentalPayload(nombrePlantilla, base64PDF)
+	payload := helpers.CrearGestorDocumentalPayload(nombrePlantilla, base64PDF)
 
 	var resultadoRegistro map[string]interface{}
 
-	err = models.SendJson("http://"+gestorDocumentalURL+"/document/upload", "POST", &resultadoRegistro, payload)
+	err = request.SendJson("http://"+gestorDocumentalURL+"/document/store_document", "POST", &resultadoRegistro, payload)
 	if err != nil {
 		return "", fmt.Errorf("error al enviar documento: %v", err)
 	}
 
 	if resultadoRegistro["Status"].(string) == "200" {
-		return resultadoRegistro["EnlaceDocumento"].(string), nil
+		return resultadoRegistro["Enlace"].(string), nil
 	} else {
 		return "", fmt.Errorf("error al registrar el documento: %v", resultadoRegistro["Error"].(string))
 	}
 }
 
 func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
-	PlantillaId, ok := requestData["PlantillaId"].(string)
-	if !ok {
-		return "", errors.New("Falta 'PlantillaId' en el JSON")
-	}
-
-	nombrePlantilla, ok := requestData["nombre_plantilla"].(string)
-	if !ok {
-		return "", errors.New("Falta 'nombre_plantilla' en el JSON")
-	}
-
-	camposDinamicos, ok := requestData["campos_dinamicos"].(map[string]interface{})
-	if !ok {
-		return "", errors.New("Falta 'campos_dinamicos' en el JSON")
-	}
-
-	url := fmt.Sprintf("https://xxxxxxxxxxxxx/endpoint/%s", PlantillaId)
-	resp, err := http.Get(url)
+	params, err := helpers.ValidarDocumentoParametros(requestData)
 	if err != nil {
-		return "", fmt.Errorf("error al hacer la solicitud al endpoint: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("error en la respuesta del endpoint: %s", resp.Status)
+		return "", err
 	}
 
-	htmlContent, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("error al leer la respuesta del endpoint: %v", err)
+	consulta := fmt.Sprintf("%s/plantilla/%s", beego.AppConfig.String("PlantillasCrudService"), params.PlantillaId)
+
+	var plantillaResponse map[string]interface{}
+	if err := request.GetJson(consulta, &plantillaResponse); err != nil {
+		return "", fmt.Errorf("error al hacer la solicitud al servicio de plantillas: %v", err)
 	}
 
-	htmlProcesado := helpers.ReemplazarCamposDinamicos(string(htmlContent), camposDinamicos)
+	htmlContent, ok := plantillaResponse["html_content"].(string)
+	if !ok {
+		return "", errors.New("El contenido HTML no se encuentra en la respuesta del servicio")
+	}
 
-	base64PDF, err := helpers.ConvertHTMLToPDF(htmlProcesado, "", nombrePlantilla)
+	htmlProcesado := helpers.ReemplazarCamposDinamicos(htmlContent, params.CamposDinamicos)
+
+	base64PDF, err := helpers.ConvertHTMLToPDF(htmlProcesado, "", params.NombrePlantilla)
 	if err != nil {
 		return "", fmt.Errorf("error al convertir HTML a PDF: %v", err)
 	}
@@ -242,7 +221,10 @@ func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
 }
 
 func ComprobarConexionCRUD() error {
-	url := "https://2hzmbx74aj.execute-api.us-east-1.amazonaws.com/Prod/health"
+	url := os.Getenv("CRUD_HEALTH_URL")
+	if url == "" {
+		return errors.New("no se encontró la variable de entorno 'CRUD_HEALTH_URL'")
+	}
 
 	client := &http.Client{
 		Timeout: 10 * time.Second,

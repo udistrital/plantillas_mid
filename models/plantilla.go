@@ -26,7 +26,6 @@ type Plantilla struct {
 	FechaModificacion time.Time              `json:"fecha_modificacion" bson:"fecha_modificacion"`
 }
 
-// AlmacenarPlantilla almacena una plantilla en el CRUD de plantillas
 func AlmacenarPlantilla(plantilla Plantilla) error {
 	crudServiceURL := beego.AppConfig.String("PlantillasCrudService")
 	if crudServiceURL == "" {
