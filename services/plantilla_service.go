@@ -162,7 +162,7 @@ func ProcesarPlantilla(requestData map[string]interface{}) (string, error) {
 		Uid:             enlace,
 	}
 
-	err = models.AlmacenarPlantilla(plantilla)
+	err = helpers.AlmacenarPlantilla(plantilla)
 	if err != nil {
 		return "", fmt.Errorf("error al almacenar la plantilla: %v", err)
 	}

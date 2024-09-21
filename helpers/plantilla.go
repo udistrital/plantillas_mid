@@ -3,12 +3,17 @@ package helpers
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
+	"github.com/astaxie/beego"
+	"github.com/udistrital/plantillas_mid/models"
 )
 
 type GestorDocumentalPayload struct {
@@ -149,4 +154,29 @@ func ValidarDocumentoParametros(requestData map[string]interface{}) (*DocumentoP
 	}
 
 	return params, nil
+}
+
+func AlmacenarPlantilla(plantilla models.Plantilla) error {
+	crudServiceURL := beego.AppConfig.String("PlantillasCrudService")
+	if crudServiceURL == "" {
+		return fmt.Errorf("la variable de entorno 'PlantillasCrudService' no está definida")
+	}
+
+	payloadBytes, err := json.Marshal(plantilla)
+	if err != nil {
+		return fmt.Errorf("error al serializar la plantilla: %v", err)
+	}
+
+	resp, err := http.Post("http://"+crudServiceURL+"/plantillas", "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("error en la petición POST al CRUD de plantillas: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("error en la respuesta del CRUD de plantillas: %s", string(bodyBytes))
+	}
+
+	return nil
 }

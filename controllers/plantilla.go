@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/astaxie/beego"
@@ -19,7 +18,6 @@ func (c *PlantillaController) URLMapping() {
 	c.Mapping("DuplicarPlantilla", c.DuplicarPlantilla)
 	c.Mapping("ConstruirPlantilla", c.ConstruirPlantilla)
 	c.Mapping("PruebaConexion", c.ConstruirDocumento)
-	c.Mapping("PruebaConexion", c.PruebaConexion)
 }
 
 func (c *PlantillaController) DuplicarPlantilla() {
@@ -86,23 +84,5 @@ func (c *PlantillaController) ConstruirDocumento() {
 		c.Data["json"] = requestresponse.APIResponseDTO(false, 400, nil, err.Error())
 	}
 
-	c.ServeJSON()
-}
-
-func (c *PlantillaController) PruebaConexion() {
-	err := services.ComprobarConexionCRUD()
-	if err != nil {
-		c.Ctx.Output.SetStatus(500)
-		c.Data["json"] = map[string]interface{}{
-			"Success": false,
-			"Message": fmt.Sprintf("Error al conectar con el CRUD: %v", err),
-		}
-	} else {
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = map[string]interface{}{
-			"Success": true,
-			"Message": "Conexión con el CRUD exitosa.",
-		}
-	}
 	c.ServeJSON()
 }
