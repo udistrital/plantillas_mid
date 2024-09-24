@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/plantillas_mid/helpers"
@@ -218,27 +216,4 @@ func ProcesarDocumento(requestData map[string]interface{}) (string, error) {
 	}
 
 	return base64PDF, nil
-}
-
-func ComprobarConexionCRUD() error {
-	url := os.Getenv("CRUD_HEALTH_URL")
-	if url == "" {
-		return errors.New("no se encontró la variable de entorno 'CRUD_HEALTH_URL'")
-	}
-
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	resp, err := client.Get(url)
-	if err != nil {
-		return fmt.Errorf("error al intentar conectar con el CRUD: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("el CRUD no está disponible o respondió con un código de estado no esperado")
-	}
-
-	return nil
 }

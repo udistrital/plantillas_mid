@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
@@ -29,6 +30,10 @@ type PlantillaParams struct {
 	SistemaId       string
 	TipoPlantillaId string
 	GrupoId         string
+}
+type TipoDocumento struct {
+	Id     int    `json:"Id"`
+	Nombre string `json:"Nombre"`
 }
 
 func ConvertHTMLToPDF(htmlContent, css string, outputFilename string) (string, error) {
@@ -78,10 +83,26 @@ func ReemplazarCamposDinamicos(htmlContent string, dynamicFields map[string]inte
 }
 
 func CrearGestorDocumentalPayload(nombrePlantilla, base64PDF string) []GestorDocumentalPayload {
+	url := os.Getenv("GESTOR_DOCUMENTAL_URL")
+
+	resp, _ := http.Get(url)
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	var tiposDocumentos []TipoDocumento
+	json.Unmarshal(body, &tiposDocumentos)
+
+	var idTipoDocumento int
+	for _, documento := range tiposDocumentos {
+		if documento.Nombre == "Plantilla" {
+			idTipoDocumento = documento.Id
+			break
+		}
+	}
 
 	return []GestorDocumentalPayload{
 		{
-			IdTipoDocumento: 170,
+			IdTipoDocumento: idTipoDocumento,
 			Nombre:          nombrePlantilla,
 			Metadatos:       map[string]string{},
 			Descripcion:     "Plantillas",
