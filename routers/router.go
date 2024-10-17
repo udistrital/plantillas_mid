@@ -19,6 +19,7 @@ func init() {
 			beego.NSInclude(
 				&controllers.PlantillaController{},
 			),
+			beego.NSRouter("/renderizar-plantilla", &controllers.PlantillaController{}, "post:RenderizarPlantilla"),
 		),
 	)
 	beego.AddNamespace(ns)
