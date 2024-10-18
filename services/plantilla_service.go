@@ -101,25 +101,25 @@ func EditPlantillas() (interface{}, error) {
 }
 
 func DefinirPlantilla(requestData models.Renderizado_plantilla) (string, error) {
-	logs.Info(requestData.Plantilla_id)
+	defer errorhandler.HandlePanic(nil)
+
 	html, err := TraerPlantilla(requestData.Plantilla_id)
 	//logs.Info("HTML: ", html)
 	if err != nil {
-		fmt.Println("err1")
 		logs.Error(err)
 		return "", err
 	}
 	plantillaRenderizada, err := Renderizar(html, requestData.Datos)
 	if err != nil {
-		fmt.Println("err2")
 		logs.Error(err)
 		return "", err
 	}
-	logs.Info(plantillaRenderizada)
 	return plantillaRenderizada, nil
 }
 
 func TraerPlantilla(plantilla_id string) (*string, error) {
+	defer errorhandler.HandlePanic(nil)
+
 	var response map[string]interface{}
 	apiUrl := beego.AppConfig.String("plantillasServerless")
 
@@ -153,6 +153,8 @@ func TraerPlantilla(plantilla_id string) (*string, error) {
 }
 
 func Renderizar(html *string, data map[string]interface{}) (string, error) {
+	defer errorhandler.HandlePanic(nil)
+
 	var response models.Response
 	url := beego.AppConfig.String("RenderizadoPlantillas")
 
