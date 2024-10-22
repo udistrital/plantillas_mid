@@ -13,7 +13,7 @@ import (
 	"github.com/udistrital/utils_oas/errorhandler"
 )
 
-func DefinirPlantilla(requestData models.Renderizado_plantilla) (string, error) {
+func DefinirPlantilla(requestData models.RenderizadoPlantilla) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
 	html, err := TraerPlantilla(requestData.Plantilla_id)

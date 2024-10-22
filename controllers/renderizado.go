@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+
 	"github.com/astaxie/beego"
 	"github.com/udistrital/plantillas_mid/models"
 	"github.com/udistrital/plantillas_mid/services"
@@ -13,10 +14,22 @@ type RenderizadoController struct {
 	beego.Controller
 }
 
+// URLMapping ...
+func (c *RenderizadoController) URLMapping() {
+	c.Mapping("RenderizarPlantilla", c.RenderizarPlantilla)
+}
+
+// RenderizarPlantilla ...
+// @Title RenderizarPlantilla
+// @Description renderiza plantilla
+// @Param	body		body 	models.RenderizadoPlantilla	true		"body for RenderizadoPlantilla content"
+// @Success 201 {int} models.Rol
+// @Failure 400 body is empty
+// @router /renderizar [post]
 func (c *RenderizadoController) RenderizarPlantilla() {
 	defer errorhandler.HandlePanic(&c.Controller)
 
-	var requestData models.Renderizado_plantilla
+	var requestData models.RenderizadoPlantilla
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &requestData)
 	if err != nil {
 		//log.Printf("Error al deserializar el JSON: %v", err)

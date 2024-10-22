@@ -52,4 +52,13 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoController"],
+		beego.ControllerComments{
+			Method:           "RenderizarPlantilla",
+			Router:           `/renderizar`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 }
