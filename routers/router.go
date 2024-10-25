@@ -8,18 +8,19 @@
 package routers
 
 import (
-	"github.com/udistrital/plantillas_mid/controllers"
-
 	"github.com/astaxie/beego"
+	"github.com/udistrital/plantillas_mid/controllers"
 )
 
 func init() {
 	ns := beego.NewNamespace("/v1",
+
 		beego.NSNamespace("/plantilla",
 			beego.NSInclude(
-				&controllers.PlantillaController{},
+				&controllers.RenderizadoController{},
 			),
 		),
 	)
+
 	beego.AddNamespace(ns)
 }

@@ -14,11 +14,14 @@ El api principalmente es pensado para darle informacion a [plantillas_cliente](h
 
 
 ### Variables de Entorno
-```shell
+
 # Ejemplo que se debe actualizar acorde al proyecto
 PLANTILLAS_MID_DB_HOST = [descripción]
 PLANTILLAS_MID_DB_NAME = [descripción]
-```
+
+PLANTILLAS_MID_RENDERIZADO_PLANTILLAS=[url del servicio de renderizado_plantillas_html]
+PLANTILLAS_CRUD_SERVICE=[url del servicio de plantillas_crud_serverless]
+
 **NOTA:** Las variables se pueden ver en el fichero conf/app.conf y están identificadas con PLANTILLAS_MID...
 
 ### Ejecución del Proyecto
