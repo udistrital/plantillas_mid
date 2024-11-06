@@ -16,8 +16,6 @@ El api principalmente es pensado para darle informacion a [plantillas_cliente](h
 ### Variables de Entorno
 
 # Ejemplo que se debe actualizar acorde al proyecto
-PLANTILLAS_MID_DB_HOST = [descripción]
-PLANTILLAS_MID_DB_NAME = [descripción]
 
 PLANTILLAS_MID_RENDERIZADO_PLANTILLAS=[url del servicio de renderizado_plantillas_html]
 PLANTILLAS_CRUD_SERVICE=[url del servicio de plantillas_crud_serverless]
@@ -36,7 +34,9 @@ cd $GOPATH/src/github.com/udistrital/plantillas_mid
 git pull origin develop && git checkout develop
 
 # 4. alimentar todas las variables de entorno que utiliza el proyecto.
-PLANTILLAS_MID_PORT=8080 PLANTILLAS_MID_DB_HOST=127.0.0.1:27017 PLANTILLAS_MID_SOME_VARIABLE=some_value bee run
+
+# 5. ejecutar
+bee run
 ```
 
 ### Ejecución Dockerfile
@@ -75,4 +75,20 @@ Pruebas unitarias
 # Not Data
 ```
 
+## Estado CI
 
+| Develop | Relese 0.0.1 | Master |
+| -- | -- | -- |
+| [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/platillas_mid/status.svg?ref=refs/heads/develop)](https://hubci.portaloas.udistrital.edu.co/udistrital/platillas_mid/) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/platillas_mid/status.svg?ref=refs/heads/release/0.0.1)](https://hubci.portaloas.udistrital.edu.co/udistrital/platillas_mid/) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/platillas_mid/status.svg)](https://hubci.portaloas.udistrital.edu.co/udistrital/platillas_mid/) |
+
+
+
+## Licencia
+
+This file is part of platillas_mid.
+
+platillas_mid is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+platillas_mid is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with novedades_crud. If not, see https://www.gnu.org/licenses/.
