@@ -7,7 +7,7 @@ require (
 	github.com/beego/beego/v2 v2.1.1
 	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/udistrital/utils_oas v0.0.0-20240711190955-138b3a53e7b1
+	github.com/udistrital/utils_oas v0.0.0-20240829190820-0bdc14dd8544
 	go.mongodb.org/mongo-driver v1.13.1
 )
 
@@ -30,6 +30,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect

@@ -298,6 +298,7 @@ github.com/openzipkin/zipkin-go v0.2.1/go.mod h1:NaW6tEwdmWMaCDZzg8sh+IBNOxHMPnh
 github.com/openzipkin/zipkin-go v0.2.2/go.mod h1:NaW6tEwdmWMaCDZzg8sh+IBNOxHMPnhQw8ySjnjRyN4=
 github.com/pact-foundation/pact-go v1.0.4/go.mod h1:uExwJY4kCzNPcHRj+hCR/HBbOOIwwtUjcrb0b5/5kLM=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
+github.com/patrickmn/go-cache v2.1.0+incompatible h1:HRMgzkcYKYpi3C8ajMPV8OFXaaRUnok+kx1WdO15EQc=
 github.com/patrickmn/go-cache v2.1.0+incompatible/go.mod h1:3Qf8kWWT7OJRJbdiICTKqZju1ZixQ/KpMGzzAfe6+WQ=
 github.com/pborman/uuid v1.2.0/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtPdI/k=
 github.com/pelletier/go-toml v1.0.1/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
@@ -409,6 +410,8 @@ github.com/udistrital/utils_oas v0.0.0-20230828220102-692e527e7ecd h1:DW+6BLswEa
 github.com/udistrital/utils_oas v0.0.0-20230828220102-692e527e7ecd/go.mod h1:a6YtBlCTVPJhwoqgkDleVBVzxeBST2bKyD/7Xl+1Bog=
 github.com/udistrital/utils_oas v0.0.0-20240711190955-138b3a53e7b1 h1:kUBX7EVKwSeENtjC0yFeFRYkp9MRWwacXG5AeNLaZ4E=
 github.com/udistrital/utils_oas v0.0.0-20240711190955-138b3a53e7b1/go.mod h1:efcg6gS+xBc9kGcXOmfCM98Rd6b7sJ9tEv/zCbeUjlY=
+github.com/udistrital/utils_oas v0.0.0-20240829190820-0bdc14dd8544 h1:jeQeIgdyU8MqcS+9ut4LoW0AO9eZJS9vDajVOpqyDhc=
+github.com/udistrital/utils_oas v0.0.0-20240829190820-0bdc14dd8544/go.mod h1:efcg6gS+xBc9kGcXOmfCM98Rd6b7sJ9tEv/zCbeUjlY=
 github.com/ugorji/go v0.0.0-20171122102828-84cb69a8af83/go.mod h1:hnLbHMwcvSihnDhEfx2/BzKp2xb0Y+ErdfYcrs9tkJQ=
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
