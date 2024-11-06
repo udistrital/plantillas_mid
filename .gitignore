@@ -15,3 +15,6 @@ swagger/swagger-ui.css
 swagger/swagger-ui.css.map
 swagger/swagger-ui.js
 swagger/swagger-ui.js.map
+
+go.mod
+go.sum
