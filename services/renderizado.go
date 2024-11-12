@@ -69,8 +69,10 @@ func Renderizar(html *string, data map[string]interface{}) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
 	var response models.Response
-	url := beego.AppConfig.String("RenderizadoPlantillas")
+	api := beego.AppConfig.String("RenderizadoPlantillas")
 
+	url := fmt.Sprintf("%s"+"/pdf", api)
+	//logs.Info("+++++++++++++++++++++++++++++ ", url)
 	requestBody := map[string]interface{}{
 		"html": *html,
 		"data": data,
