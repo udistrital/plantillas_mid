@@ -71,7 +71,7 @@ func Renderizar(html *string, data map[string]interface{}) (string, error) {
 	var response models.Response
 	api := beego.AppConfig.String("RenderizadoPlantillas")
 
-	url := fmt.Sprintf("%s"+"/pdf", api)
+	url := fmt.Sprintf("%s"+"/generar-pdf", api)
 	//logs.Info("+++++++++++++++++++++++++++++ ", url)
 	requestBody := map[string]interface{}{
 		"html": *html,

@@ -45,7 +45,7 @@
         }
     },
     "definitions": {
-        "812.0xc000257440.false": {
+        "812.0xc000296e70.false": {
             "title": "false",
             "type": "object"
         },
@@ -54,7 +54,7 @@
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/812.0xc000257440.false"
+                    "$ref": "#/definitions/812.0xc000296e70.false"
                 },
                 "plantilla_id": {
                     "type": "string"
