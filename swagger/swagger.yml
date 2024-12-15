@@ -30,7 +30,7 @@ paths:
         "400":
           description: body is empty
 definitions:
-  812.0xc000257440.false:
+  812.0xc000296e70.false:
     title: "false"
     type: object
   models.RenderizadoPlantilla:
@@ -38,6 +38,6 @@ definitions:
     type: object
     properties:
       data:
-        $ref: '#/definitions/812.0xc000257440.false'
+        $ref: '#/definitions/812.0xc000296e70.false'
       plantilla_id:
         type: string
