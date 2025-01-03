@@ -24,7 +24,7 @@ func Renderizar(requestData models.Renderizado) (string, error) {
 	requestBody := models.RenderizadoPDF{
 		Html: *html,
 		Css: requestData.Css,
-		Datos: requestData.Data,
+		Data: requestData.Data,
 	}
 	plantillaRenderizada, err := GenerarPDF(requestBody)
 	if err != nil {
