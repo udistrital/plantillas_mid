@@ -7,58 +7,31 @@ import (
 
 func init() {
 
-	beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"],
-		beego.ControllerComments{
-			Method:           "Post",
-			Router:           "/",
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
+    beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoController"],
+        beego.ControllerComments{
+            Method: "Renderizar",
+            Router: "/renderizar",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"],
-		beego.ControllerComments{
-			Method:           "GetAll",
-			Router:           "/",
-			AllowHTTPMethods: []string{"get"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
+    beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoHTMLController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoHTMLController"],
+        beego.ControllerComments{
+            Method: "RenderizarHTML",
+            Router: "/renderizarHTML",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"],
-		beego.ControllerComments{
-			Method:           "GetOne",
-			Router:           "/:id",
-			AllowHTTPMethods: []string{"get"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"],
-		beego.ControllerComments{
-			Method:           "Put",
-			Router:           "/:id",
-			AllowHTTPMethods: []string{"put"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:PlantillaController"],
-		beego.ControllerComments{
-			Method:           "Delete",
-			Router:           "/:id",
-			AllowHTTPMethods: []string{"delete"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoController"],
-		beego.ControllerComments{
-			Method:           "RenderizarPlantilla",
-			Router:           `/renderizar`,
-			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
+    beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoPDFController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoPDFController"],
+        beego.ControllerComments{
+            Method: "RenderizarPDF",
+            Router: "/renderizarPDF",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
 
 }

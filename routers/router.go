@@ -18,6 +18,8 @@ func init() {
 		beego.NSNamespace("/plantilla",
 			beego.NSInclude(
 				&controllers.RenderizadoController{},
+				&controllers.RenderizadoHTMLController{},
+				&controllers.RenderizadoPDFController{},
 			),
 		),
 	)
