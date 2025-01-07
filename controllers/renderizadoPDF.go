@@ -10,26 +10,26 @@ import (
 	"github.com/udistrital/utils_oas/requestresponse"
 )
 
-type RenderizadoController struct {
+type RenderizadoPDFController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *RenderizadoController) URLMapping() {
-	c.Mapping("Renderizar", c.Renderizar)
+func (c *RenderizadoPDFController) URLMapping() {
+	c.Mapping("RenderizarPDF", c.RenderizarPDF)
 }
 
-// Renderizar ...
-// @Title Renderizar
-// @Description Genera un PDF (base64) utilizando un ID de plantilla y datos personalizados para su reemplazo
-// @Param	body		body 	models.Renderizado	true		"body for Renderizado content"
+// RenderizarPDF ...
+// @Title RenderizarPDF
+// @Description Genera un PDF (base64) a partir de contenido HTML y datos personalizados para su reemplazo
+// @Param	body		body 	models.RenderizadoPDF	true		"body for RenderizadoPDF content"
 // @Success 201 {int} models.Rol
 // @Failure 400 body is empty
-// @router /renderizar [post]
-func (c *RenderizadoController) Renderizar() {
+// @router /renderizarPDF [post]
+func (c *RenderizadoPDFController) RenderizarPDF() {
 	defer errorhandler.HandlePanic(&c.Controller)
 
-	var requestData models.Renderizado
+	var requestData models.RenderizadoPDF
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &requestData)
 	if err != nil {
 		c.Ctx.Output.SetStatus(400)
@@ -38,7 +38,7 @@ func (c *RenderizadoController) Renderizar() {
 		return
 	}
 
-	plantillaRenderizada, err := services.Renderizar(requestData)
+	plantillaRenderizada, err := services.RenderizarPDF(requestData)
 	if err == nil {
 		c.Ctx.Output.SetStatus(200)
 		c.Data["json"] = requestresponse.APIResponseDTO(true, 200, plantillaRenderizada)

@@ -20,16 +20,72 @@
                 "tags": [
                     "plantilla"
                 ],
-                "description": "renderiza plantilla",
-                "operationId": "RenderizadoController.RenderizarPlantilla",
+                "description": "Genera un PDF (base64) utilizando un ID de plantilla y datos personalizados para su reemplazo",
+                "operationId": "RenderizadoController.Renderizar",
                 "parameters": [
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "body for RenderizadoPlantilla content",
+                        "description": "body for Renderizado content",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.RenderizadoPlantilla"
+                            "$ref": "#/definitions/models.Renderizado"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Rol"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/plantilla/renderizarHTML": {
+            "post": {
+                "tags": [
+                    "plantilla"
+                ],
+                "description": "Genera un HTML utilizando un ID de plantilla y datos personalizados para su reemplazo",
+                "operationId": "RenderizadoHTMLController.RenderizarHTML",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for RenderizadoHTML content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RenderizadoHTML"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Rol"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/plantilla/renderizarPDF": {
+            "post": {
+                "tags": [
+                    "plantilla"
+                ],
+                "description": "Genera un PDF (base64) a partir de contenido HTML y datos personalizados para su reemplazo",
+                "operationId": "RenderizadoPDFController.RenderizarPDF",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for RenderizadoPDF content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RenderizadoPDF"
                         }
                     }
                 ],
@@ -45,18 +101,56 @@
         }
     },
     "definitions": {
-        "812.0xc000296e70.false": {
+        "1050.0xc0002b0780.false": {
             "title": "false",
             "type": "object"
         },
-        "models.RenderizadoPlantilla": {
-            "title": "RenderizadoPlantilla",
+        "1340.0xc0002b0810.false": {
+            "title": "false",
+            "type": "object"
+        },
+        "812.0xc0002b06f0.false": {
+            "title": "false",
+            "type": "object"
+        },
+        "models.Renderizado": {
+            "title": "Renderizado",
+            "type": "object",
+            "properties": {
+                "css": {
+                    "type": "string"
+                },
+                "data": {
+                    "$ref": "#/definitions/812.0xc0002b06f0.false"
+                },
+                "plantilla_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RenderizadoHTML": {
+            "title": "RenderizadoHTML",
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/812.0xc000296e70.false"
+                    "$ref": "#/definitions/1050.0xc0002b0780.false"
                 },
                 "plantilla_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RenderizadoPDF": {
+            "title": "RenderizadoPDF",
+            "type": "object",
+            "properties": {
+                "css": {
+                    "type": "string"
+                },
+                "datos": {
+                    "$ref": "#/definitions/1340.0xc0002b0810.false"
+                },
+                "html": {
                     "type": "string"
                 }
             }
