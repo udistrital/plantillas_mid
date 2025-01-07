@@ -19,7 +19,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoHTMLController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoHTMLController"],
         beego.ControllerComments{
             Method: "RenderizarHTML",
-            Router: "/renderizarHTML",
+            Router: "/renderizar-html",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -28,7 +28,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoPDFController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoPDFController"],
         beego.ControllerComments{
             Method: "RenderizarPDF",
-            Router: "/renderizarPDF",
+            Router: "/renderizar-pdf",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,

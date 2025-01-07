@@ -48,7 +48,7 @@ func RenderizarPDF(requestData models.RenderizadoPDF) (string, error) {
 func GenerarPDF(requestBody models.RenderizadoPDF) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 	
-	response := models.ResponsePDF{}
+	response := models.ResponseRenderizado{}
 	err := Generar(requestBody, &response, "generar-pdf")
 	if err != nil {
 		return "", err
@@ -80,12 +80,12 @@ func GenerarHTML(html *string, data map[string]interface{}) (string, error) {
 		Data: data,
 	}
 
-	response := models.ResponseHTML{}
+	response := models.ResponseRenderizado{}
 	err := Generar(requestBody, &response, "generar-html")
 	if err != nil {
 		return "", err
 	}
-	return response.Html, nil
+	return response.Data, nil
 }
 
 func ObtenerPlantilla(plantilla_id string) (*string, error) {

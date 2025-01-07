@@ -25,7 +25,7 @@ func (c *RenderizadoHTMLController) URLMapping() {
 // @Param	body		body 	models.RenderizadoHTML	true		"body for RenderizadoHTML content"
 // @Success 201 {int} models.Rol
 // @Failure 400 body is empty
-// @router /renderizarHTML [post]
+// @router /renderizar-html [post]
 func (c *RenderizadoHTMLController) RenderizarHTML() {
 	defer errorhandler.HandlePanic(&c.Controller)
 

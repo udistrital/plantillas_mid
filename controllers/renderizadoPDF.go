@@ -25,7 +25,7 @@ func (c *RenderizadoPDFController) URLMapping() {
 // @Param	body		body 	models.RenderizadoPDF	true		"body for RenderizadoPDF content"
 // @Success 201 {int} models.Rol
 // @Failure 400 body is empty
-// @router /renderizarPDF [post]
+// @router /renderizar-pdf [post]
 func (c *RenderizadoPDFController) RenderizarPDF() {
 	defer errorhandler.HandlePanic(&c.Controller)
 
