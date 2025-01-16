@@ -13,18 +13,18 @@ import (
 	"github.com/udistrital/utils_oas/errorhandler"
 )
 
-func Renderizar(requestData models.Renderizado) (string, error) {
+func Renderizar(request models.Renderizado) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
-	html, err := ObtenerPlantilla(requestData.Plantilla_id)
+	html, err := ObtenerPlantilla(request.Plantilla_id)
 	if err != nil {
 		logs.Error(err)
 		return "", err
 	}
 	requestBody := models.RenderizadoPDF{
 		Html: *html,
-		Css: requestData.Css,
-		Data: requestData.Data,
+		Css: request.Css,
+		Datos: request.Datos,
 	}
 	plantillaRenderizada, err := GenerarPDF(requestBody)
 	if err != nil {
@@ -34,10 +34,10 @@ func Renderizar(requestData models.Renderizado) (string, error) {
 	return plantillaRenderizada, nil
 }
 
-func RenderizarPDF(requestData models.RenderizadoPDF) (string, error) {
+func RenderizarPDF(request models.RenderizadoPDF) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
-	plantillaRenderizada, err := GenerarPDF(requestData)
+	plantillaRenderizada, err := GenerarPDF(request)
 	if err != nil {
 		logs.Error(err)
 		return "", err
@@ -48,7 +48,7 @@ func RenderizarPDF(requestData models.RenderizadoPDF) (string, error) {
 func GenerarPDF(requestBody models.RenderizadoPDF) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 	
-	response := models.ResponsePDF{}
+	response := models.ResponseRenderizado{}
 	err := Generar(requestBody, &response, "generar-pdf")
 	if err != nil {
 		return "", err
@@ -56,15 +56,15 @@ func GenerarPDF(requestBody models.RenderizadoPDF) (string, error) {
 	return response.Data, nil
 }
 
-func RenderizarHTML(requestData models.RenderizadoHTML) (string, error) {
+func RenderizarHTML(request models.RenderizadoHTML) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
-	html, err := ObtenerPlantilla(requestData.Plantilla_id)
+	html, err := ObtenerPlantilla(request.Plantilla_id)
 	if err != nil {
 		logs.Error(err)
 		return "", err
 	}
-	plantillaRenderizada, err := GenerarHTML(html, requestData.Data)
+	plantillaRenderizada, err := GenerarHTML(html, request.Datos)
 	if err != nil {
 		logs.Error(err)
 		return "", err
@@ -72,20 +72,20 @@ func RenderizarHTML(requestData models.RenderizadoHTML) (string, error) {
 	return plantillaRenderizada, nil
 }
 
-func GenerarHTML(html *string, data map[string]interface{}) (string, error) {
+func GenerarHTML(html *string, datos map[string]interface{}) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
 	requestBody := models.BodyHTML{
 		Html: *html,
-		Data: data,
+		Datos: datos,
 	}
 
-	response := models.ResponseHTML{}
+	response := models.ResponseRenderizado{}
 	err := Generar(requestBody, &response, "generar-html")
 	if err != nil {
 		return "", err
 	}
-	return response.Html, nil
+	return response.Data, nil
 }
 
 func ObtenerPlantilla(plantilla_id string) (*string, error) {

@@ -29,7 +29,7 @@ paths:
           description: '{int} models.Rol'
         "400":
           description: body is empty
-  /plantilla/renderizarHTML:
+  /plantilla/renderizar-html:
     post:
       tags:
       - plantilla
@@ -47,7 +47,7 @@ paths:
           description: '{int} models.Rol'
         "400":
           description: body is empty
-  /plantilla/renderizarPDF:
+  /plantilla/renderizar-pdf:
     post:
       tags:
       - plantilla
@@ -66,13 +66,13 @@ paths:
         "400":
           description: body is empty
 definitions:
-  812.0xc0002b06f0.false:
+  856.0xc00038e0f0.false:
     title: "false"
     type: object
-  1050.0xc0002b0780.false:
+  1050.0xc00038e180.false:
     title: "false"
     type: object
-  1340.0xc0002b0810.false:
+  1339.0xc00038e210.false:
     title: "false"
     type: object
   models.Renderizado:
@@ -82,7 +82,7 @@ definitions:
       css:
         type: string
       data:
-        $ref: '#/definitions/812.0xc0002b06f0.false'
+        $ref: '#/definitions/856.0xc00038e0f0.false'
       plantilla_id:
         type: string
   models.RenderizadoHTML:
@@ -90,7 +90,7 @@ definitions:
     type: object
     properties:
       data:
-        $ref: '#/definitions/1050.0xc0002b0780.false'
+        $ref: '#/definitions/1050.0xc00038e180.false'
       plantilla_id:
         type: string
   models.RenderizadoPDF:
@@ -99,7 +99,7 @@ definitions:
     properties:
       css:
         type: string
-      datos:
-        $ref: '#/definitions/1340.0xc0002b0810.false'
+      data:
+        $ref: '#/definitions/1339.0xc00038e210.false'
       html:
         type: string
