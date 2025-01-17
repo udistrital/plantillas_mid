@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/astaxie/beego/logs"
 	_ "github.com/udistrital/plantillas_mid/routers"
 	apistatus "github.com/udistrital/utils_oas/apiStatusLib"
 
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-
+	logs.Info("inicio")
 	AllowedOrigins := []string{"*.udistrital.edu.co"}
 	if beego.BConfig.RunMode == "dev" {
 		AllowedOrigins = []string{"*"}
