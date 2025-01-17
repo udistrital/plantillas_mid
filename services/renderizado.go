@@ -22,8 +22,8 @@ func Renderizar(request models.Renderizado) (string, error) {
 		return "", err
 	}
 	requestBody := models.RenderizadoPDF{
-		Html: *html,
-		Css: request.Css,
+		Html:  *html,
+		Css:   request.Css,
 		Datos: request.Datos,
 	}
 	plantillaRenderizada, err := GenerarPDF(requestBody)
@@ -47,7 +47,7 @@ func RenderizarPDF(request models.RenderizadoPDF) (string, error) {
 
 func GenerarPDF(requestBody models.RenderizadoPDF) (string, error) {
 	defer errorhandler.HandlePanic(nil)
-	
+
 	response := models.ResponseRenderizado{}
 	err := Generar(requestBody, &response, "generar-pdf")
 	if err != nil {
@@ -76,7 +76,7 @@ func GenerarHTML(html *string, datos map[string]interface{}) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
 	requestBody := models.BodyHTML{
-		Html: *html,
+		Html:  *html,
 		Datos: datos,
 	}
 
@@ -93,6 +93,7 @@ func ObtenerPlantilla(plantilla_id string) (*string, error) {
 
 	apiUrl := beego.AppConfig.String("PlantillasCrudService")
 	url := fmt.Sprintf("%s"+"/plantilla/"+"%s", apiUrl, plantilla_id)
+	logs.Info("--------url OBTENER PLANTILLA: ", url)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -113,7 +114,7 @@ func ObtenerPlantilla(plantilla_id string) (*string, error) {
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
-	
+
 	data, ok := response["Data"].(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error: no se pudo obtener 'Data' de la respuesta")
@@ -128,7 +129,7 @@ func ObtenerPlantilla(plantilla_id string) (*string, error) {
 
 func Generar(requestBody interface{}, responseBody interface{}, endpoint string) error {
 	defer errorhandler.HandlePanic(nil)
-	
+
 	// Serializar el cuerpo de la solicitud
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
@@ -138,6 +139,7 @@ func Generar(requestBody interface{}, responseBody interface{}, endpoint string)
 	// Construir la URL
 	api := beego.AppConfig.String("RenderizadoPlantillas")
 	url := fmt.Sprintf("%s/%s", api, endpoint)
+	logs.Info("--------url RENDERIZADO: ", url)
 
 	// Crear la solicitud HTTP
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
@@ -152,7 +154,7 @@ func Generar(requestBody interface{}, responseBody interface{}, endpoint string)
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	// Leer el cuerpo de la respuesta
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
