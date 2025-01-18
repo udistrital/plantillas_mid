@@ -14,6 +14,7 @@ import (
 )
 
 func Renderizar(request models.Renderizado) (string, error) {
+
 	defer errorhandler.HandlePanic(nil)
 
 	html, err := ObtenerPlantilla(request.Plantilla_id)
@@ -22,10 +23,11 @@ func Renderizar(request models.Renderizado) (string, error) {
 		return "", err
 	}
 	requestBody := models.RenderizadoPDF{
-		Html:  *html,
-		Css:   request.Css,
-		Datos: request.Datos,
+		Html: *html,
+		Css:  request.Css,
+		Data: request.Data,
 	}
+
 	plantillaRenderizada, err := GenerarPDF(requestBody)
 	if err != nil {
 		logs.Error(err)
@@ -64,7 +66,7 @@ func RenderizarHTML(request models.RenderizadoHTML) (string, error) {
 		logs.Error(err)
 		return "", err
 	}
-	plantillaRenderizada, err := GenerarHTML(html, request.Datos)
+	plantillaRenderizada, err := GenerarHTML(html, request.Data)
 	if err != nil {
 		logs.Error(err)
 		return "", err
@@ -76,8 +78,8 @@ func GenerarHTML(html *string, datos map[string]interface{}) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
 	requestBody := models.BodyHTML{
-		Html:  *html,
-		Datos: datos,
+		Html: *html,
+		Data: datos,
 	}
 
 	response := models.ResponseRenderizado{}

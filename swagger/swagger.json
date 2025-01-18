@@ -15,34 +15,6 @@
     },
     "basePath": "/v1",
     "paths": {
-        "/plantilla/renderizar": {
-            "post": {
-                "tags": [
-                    "plantilla"
-                ],
-                "description": "Genera un PDF (base64) utilizando un ID de plantilla y datos personalizados para su reemplazo",
-                "operationId": "RenderizadoController.Renderizar",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body for Renderizado content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Renderizado"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "{int} models.Rol"
-                    },
-                    "400": {
-                        "description": "body is empty"
-                    }
-                }
-            }
-        },
         "/plantilla/renderizar-html": {
             "post": {
                 "tags": [
@@ -98,18 +70,46 @@
                     }
                 }
             }
+        },
+        "/plantilla/renderizazzz": {
+            "post": {
+                "tags": [
+                    "plantilla"
+                ],
+                "description": "Genera un PDF (base64) utilizando un ID de plantilla y datos personalizados para su reemplazo",
+                "operationId": "RenderizadoController.Renderizar",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Renderizado content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Renderizado"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Rol"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "1050.0xc00038e180.false": {
+        "1102.0xc0002806f0.false": {
             "title": "false",
             "type": "object"
         },
-        "1339.0xc00038e210.false": {
+        "1403.0xc000280780.false": {
             "title": "false",
             "type": "object"
         },
-        "856.0xc00038e0f0.false": {
+        "899.0xc000280660.false": {
             "title": "false",
             "type": "object"
         },
@@ -120,8 +120,8 @@
                 "css": {
                     "type": "string"
                 },
-                "data": {
-                    "$ref": "#/definitions/856.0xc00038e0f0.false"
+                "datos": {
+                    "$ref": "#/definitions/899.0xc000280660.false"
                 },
                 "plantilla_id": {
                     "type": "string"
@@ -132,8 +132,8 @@
             "title": "RenderizadoHTML",
             "type": "object",
             "properties": {
-                "data": {
-                    "$ref": "#/definitions/1050.0xc00038e180.false"
+                "datos": {
+                    "$ref": "#/definitions/1102.0xc0002806f0.false"
                 },
                 "plantilla_id": {
                     "type": "string"
@@ -147,8 +147,8 @@
                 "css": {
                     "type": "string"
                 },
-                "data": {
-                    "$ref": "#/definitions/1339.0xc00038e210.false"
+                "datos": {
+                    "$ref": "#/definitions/1403.0xc000280780.false"
                 },
                 "html": {
                     "type": "string"
