@@ -1,3 +1,4 @@
+lastupdate.tmp
 .env
 plantillas_mid.exe
 
@@ -18,3 +19,6 @@ swagger/swagger-ui.js.map
 
 go.mod
 go.sum
+
+# Executables
+plantillas_mid*

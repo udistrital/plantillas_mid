@@ -16,6 +16,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoDOCXController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoDOCXController"],
+        beego.ControllerComments{
+            Method: "RenderizarDOCX",
+            Router: "/renderizar-docx",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoHTMLController"] = append(beego.GlobalControllerRouter["github.com/udistrital/plantillas_mid/controllers:RenderizadoHTMLController"],
         beego.ControllerComments{
             Method: "RenderizarHTML",

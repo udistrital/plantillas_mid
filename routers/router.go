@@ -20,6 +20,7 @@ func init() {
 				&controllers.RenderizadoController{},
 				&controllers.RenderizadoHTMLController{},
 				&controllers.RenderizadoPDFController{},
+				&controllers.RenderizadoDOCXController{},
 			),
 		),
 	)

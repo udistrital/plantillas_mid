@@ -47,11 +47,44 @@ func RenderizarPDF(request models.RenderizadoPDF) (string, error) {
 	return plantillaRenderizada, nil
 }
 
+func RenderizarDOCX(request models.Renderizado) (string, error) {
+	defer errorhandler.HandlePanic(nil)
+
+	html, err := ObtenerPlantilla(request.Plantilla_id)
+	if err != nil {
+		logs.Error(err)
+		return "", err
+	}
+	requestBody := models.RenderizadoDOCX{
+		Html: *html,
+		Css:  request.Css,
+		Data: request.Data,
+	}
+
+	plantillaRenderizada, err := GenerarDOCX(requestBody)
+	if err != nil {
+		logs.Error(err)
+		return "", err
+	}
+	return plantillaRenderizada, nil
+}
+
 func GenerarPDF(requestBody models.RenderizadoPDF) (string, error) {
 	defer errorhandler.HandlePanic(nil)
 
 	response := models.ResponseRenderizado{}
 	err := Generar(requestBody, &response, "generar-pdf")
+	if err != nil {
+		return "", err
+	}
+	return response.Data, nil
+}
+
+func GenerarDOCX(requestBody models.RenderizadoDOCX) (string, error) {
+	defer errorhandler.HandlePanic(nil)
+
+	response := models.ResponseRenderizado{}
+	err := Generar(requestBody, &response, "generar-docx")
 	if err != nil {
 		return "", err
 	}
