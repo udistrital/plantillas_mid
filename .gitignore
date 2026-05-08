@@ -11,3 +11,6 @@ swagger/**
 
 go.mod
 go.sum
+
+# Executables
+plantillas_mid*

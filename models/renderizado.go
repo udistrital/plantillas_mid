@@ -26,3 +26,11 @@ type BodyHTML struct {
 	Html string                 `json:"html"`
 	Data map[string]interface{} `json:"data"`
 }
+
+// Body que recibe la solicitud de /renderizarDOCX
+// Body que recibe la solicitud de /generar-docx de PLANTILLAS_MID_RENDERIZADO_PLANTILLAS
+type RenderizadoDOCX struct {
+	Css  string                 `json:"css"`
+	Html string                 `json:"html"`
+	Data map[string]interface{} `json:"data"`
+}
