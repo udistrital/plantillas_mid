@@ -11,6 +11,42 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 basePath: /v1
 paths:
+  /plantilla/renderizar:
+    post:
+      tags:
+      - plantilla
+      description: Genera un PDF (base64) utilizando un ID de plantilla y datos personalizados para su reemplazo
+      operationId: RenderizadoController.Renderizar
+      parameters:
+      - in: body
+        name: body
+        description: body for Renderizado content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Renderizado'
+      responses:
+        "201":
+          description: '{int} models.Rol'
+        "400":
+          description: body is empty
+  /plantilla/renderizar-docx:
+    post:
+      tags:
+      - plantilla
+      description: Genera un DOCX (base64) a partir de contenido HTML y datos personalizados para su reemplazo
+      operationId: RenderizadoDOCXController.RenderizarDOCX
+      parameters:
+      - in: body
+        name: body
+        description: body for RenderizadoDOCX content
+        required: true
+        schema:
+          $ref: '#/definitions/models.RenderizadoDOCX'
+      responses:
+        "201":
+          description: '{int} models.Rol'
+        "400":
+          description: body is empty
   /plantilla/renderizar-html:
     post:
       tags:
@@ -47,32 +83,17 @@ paths:
           description: '{int} models.Rol'
         "400":
           description: body is empty
-  /plantilla/renderizazzz:
-    post:
-      tags:
-      - plantilla
-      description: Genera un PDF (base64) utilizando un ID de plantilla y datos personalizados para su reemplazo
-      operationId: RenderizadoController.Renderizar
-      parameters:
-      - in: body
-        name: body
-        description: body for Renderizado content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Renderizado'
-      responses:
-        "201":
-          description: '{int} models.Rol'
-        "400":
-          description: body is empty
 definitions:
-  899.0xc000280660.false:
+  862.0xc000247110.false:
     title: "false"
     type: object
-  1102.0xc0002806f0.false:
+  1056.0xc0002471a0.false:
     title: "false"
     type: object
-  1403.0xc000280780.false:
+  1355.0xc000247230.false:
+    title: "false"
+    type: object
+  1859.0xc000247350.false:
     title: "false"
     type: object
   models.Renderizado:
@@ -81,16 +102,26 @@ definitions:
     properties:
       css:
         type: string
-      datos:
-        $ref: '#/definitions/899.0xc000280660.false'
+      data:
+        $ref: '#/definitions/862.0xc000247110.false'
       plantilla_id:
+        type: string
+  models.RenderizadoDOCX:
+    title: RenderizadoDOCX
+    type: object
+    properties:
+      css:
+        type: string
+      data:
+        $ref: '#/definitions/1859.0xc000247350.false'
+      html:
         type: string
   models.RenderizadoHTML:
     title: RenderizadoHTML
     type: object
     properties:
-      datos:
-        $ref: '#/definitions/1102.0xc0002806f0.false'
+      data:
+        $ref: '#/definitions/1056.0xc0002471a0.false'
       plantilla_id:
         type: string
   models.RenderizadoPDF:
@@ -99,7 +130,7 @@ definitions:
     properties:
       css:
         type: string
-      datos:
-        $ref: '#/definitions/1403.0xc000280780.false'
+      data:
+        $ref: '#/definitions/1355.0xc000247230.false'
       html:
         type: string
