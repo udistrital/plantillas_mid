@@ -19,7 +19,6 @@ func main() {
 		beego.BConfig.WebConfig.DirectoryIndex = true
 		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
 	}
-
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		AllowOrigins: allowedOrigins,
 		AllowMethods: []string{"DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"},
@@ -33,10 +32,13 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	logs.SetLogger(logs.AdapterFile, `{"filename":"/var/log/beego/plantillas_mid/plantillas_mid.log"}`)
+
 	if err := xray.InitXRay(); err != nil {
 		logs.Error("error configurando AWS XRay: %v", err)
 	}
 	apistatus.Init()
+	xray.InitXRay()
 	auditoria.InitMiddleware()
 	beego.ErrorController(&customerrorv2.CustomErrorController{})
 	security.SetSecurityHeaders()
