@@ -45,29 +45,6 @@ bee run
 # docker run -p 80:80 plantillas_mid
 ```
 
-
-### Ejecución docker-compose
-```shell
-#1. Clonar el repositorio
-git clone -b develop https://github.com/udistrital/plantillas_mid
-
-#2. Moverse a la carpeta del repositorio
-cd plantillas_mid
-
-#3. Crear un fichero con el nombre **custom.env**
-# En windows ejecutar:* ` ni custom.env`
-touch custom.env
-
-#4. Crear la network **back_end** para los contenedores
-docker network create back_end
-
-#5. Ejecutar el compose del contenedor
-docker-compose up --build
-
-#6. Comprobar que los contenedores estén en ejecución
-docker ps
-```
-
 ### Ejecución Pruebas
 
 Pruebas unitarias
@@ -79,7 +56,7 @@ Pruebas unitarias
 
 | Develop | Relese 0.0.1 | Master |
 | -- | -- | -- |
-| [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/platillas_mid/status.svg?ref=refs/heads/develop)](https://hubci.portaloas.udistrital.edu.co/udistrital/platillas_mid/) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/platillas_mid/status.svg?ref=refs/heads/release/0.0.1)](https://hubci.portaloas.udistrital.edu.co/udistrital/platillas_mid/) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/platillas_mid/status.svg)](https://hubci.portaloas.udistrital.edu.co/udistrital/platillas_mid/) |
+| [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/plantillas_mid/status.svg?ref=refs/heads/develop)](https://hubci.portaloas.udistrital.edu.co/udistrital/plantillas_mid/) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/plantillas_mid/status.svg?ref=refs/heads/release/0.0.1)](https://hubci.portaloas.udistrital.edu.co/udistrital/plantillas_mid/) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/plantillas_mid/status.svg)](https://hubci.portaloas.udistrital.edu.co/udistrital/plantillas_mid/) |
 
 
 
