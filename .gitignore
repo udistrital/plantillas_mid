@@ -14,3 +14,5 @@ go.sum
 
 # Executables
 plantillas_mid*
+
+.DS_Store
