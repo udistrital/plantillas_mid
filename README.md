@@ -7,10 +7,26 @@ El api principalmente es pensado para darle informacion a [plantillas_cliente](h
 ## Especificaciones Técnicas
 
 ### Tecnologías Implementadas y Versiones
-* [Golang](https://github.com/udistrital/introduccion_oas/blob/master/instalacion_de_herramientas/golang.md)
-* [BeeGo](https://github.com/udistrital/introduccion_oas/blob/master/instalacion_de_herramientas/beego.md)
+* [Golang](https://github.com/udistrital/introduccion_oas/blob/master/instalacion_de_herramientas/golang.md) 1.27.3
+* [BeeGo](https://github.com/udistrital/introduccion_oas/blob/master/instalacion_de_herramientas/beego.md) v2.3.9 (`github.com/beego/beego/v2`) y v1.12.3 (`github.com/astaxie/beego`)
 * [Docker](https://docs.docker.com/engine/install/ubuntu/)
 * [Docker Compose](https://docs.docker.com/compose/)
+* Imagen base: `gcr.io/distroless/base-debian13`
+
+### Librerías
+
+| Librería | Versión |
+| -- | -- |
+| github.com/beego/beego/v2 | v2.3.9 |
+| github.com/astaxie/beego | v1.12.3 |
+| github.com/udistrital/utils_oas | v0.4.2 |
+| github.com/smartystreets/goconvey | v1.8.1 |
+| golang.org/x/crypto | v0.55.0 |
+| golang.org/x/net | v0.58.0 |
+| google.golang.org/grpc | v1.83.2 |
+| github.com/klauspost/compress | v1.18.7 |
+
+Las versiones completas están en `go.mod`.
 
 
 ### Variables de Entorno
