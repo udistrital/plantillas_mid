@@ -32,8 +32,6 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	logs.SetLogger(logs.AdapterFile, `{"filename":"/var/log/beego/plantillas_mid/plantillas_mid.log"}`)
-
 	if err := xray.InitXRay(); err != nil {
 		logs.Error("error configurando AWS XRay: %v", err)
 	}
